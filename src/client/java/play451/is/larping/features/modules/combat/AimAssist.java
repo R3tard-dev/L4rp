@@ -29,7 +29,7 @@ public class AimAssist extends Module {
     private final MinecraftClient mc = MinecraftClient.getInstance();
     
     public AimAssist() {
-        super("AimAssist", "Smooth aim assist toward players", ModuleCategory.COMBAT);
+        super("AimAssist", "Aimbot but looks legit", ModuleCategory.COMBAT);
     }
     
     @Override
