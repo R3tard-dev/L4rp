@@ -1,33 +1,30 @@
 {
 	"schemaVersion": 1,
-	"id": "larping",
+	"id": "l4rp",
 	"version": "${version}",
-	"name": "larping",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "L4rp",
+	"description": "A Fabric mod",
 	"authors": [
-		"Me!"
+		"play451"
 	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/larping/icon.png",
+	"contact": {},
+	"license": "MIT",
+	"icon": "assets/larp/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
 			"play451.is.larping.Larp"
 		],
 		"client": [
-			"play451.is.larping.Larp"
+			"play451.is.larping.LarpClient"
 		]
 	},
 	"mixins": [
-		"larping.mixins.json"
+		"l4rp.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.18.4",
-		"minecraft": "~1.21.8",
+		"fabricloader": ">=0.16.9",
+		"minecraft": "~1.21.4",
 		"java": ">=21",
 		"fabric-api": "*"
 	}
