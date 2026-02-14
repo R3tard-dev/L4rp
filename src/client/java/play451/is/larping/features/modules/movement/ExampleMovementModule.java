@@ -10,16 +10,16 @@ public class ExampleMovementModule extends Module {
     
     @Override
     public void onEnable() {
-        // Called when module is enabled
+         
     }
     
     @Override
     public void onDisable() {
-        // Called when module is disabled
+         
     }
     
     @Override
     public void onTick() {
-        // Called every tick when module is enabled
+         
     }
 }

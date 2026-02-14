@@ -11,7 +11,7 @@ public class ModuleManager {
     private final Map<ModuleCategory, List<Module>> modulesByCategory = new HashMap<>();
     
     private ModuleManager() {
-        // Initialize category lists
+         
         for (ModuleCategory category : ModuleCategory.values()) {
             modulesByCategory.put(category, new ArrayList<>());
         }

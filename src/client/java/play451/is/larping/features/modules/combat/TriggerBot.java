@@ -13,16 +13,16 @@ import java.util.Random;
 
 public class TriggerBot extends Module {
     
-    // Settings
-    private String mode = "1.9"; // "1.8" or "1.9"
-    private double cps = 10.0; // Clicks per second (1.8 mode)
-    private boolean blockhit = true; // Auto-block (1.8 mode)
-    private double cooldownProgress = 90.0; // Attack at % charge (1.9 mode)
-    private double hitRange = 3.0; // Maximum attack range
-    private boolean critTiming = false; // Only hit while falling
-    private boolean requireWeapon = true; // Sword or axe only
+     
+    private String mode = "1.9";  
+    private double cps = 10.0;  
+    private boolean blockhit = true;  
+    private double cooldownProgress = 90.0;  
+    private double hitRange = 3.0;  
+    private boolean critTiming = false;  
+    private boolean requireWeapon = true;  
     
-    // Internal state
+     
     private long lastHitTime = 0;
     private long nextDelay = 0;
     private long blockEndTime = 0;
@@ -55,52 +55,52 @@ public class TriggerBot extends Module {
     public void onTick() {
         if (mc.player == null || mc.world == null || mc.player.isDead()) return;
         
-        // Handle blocking state
+         
         if (isBlocking) {
             if (System.currentTimeMillis() >= blockEndTime) {
                 stopBlocking();
             } else {
-                return; // Don't attack while blocking
+                return;  
             }
         }
         
-        // Don't attack if already using item
+         
         if (mc.player.isUsingItem()) return;
         
-        // Check weapon requirement
+         
         if (requireWeapon) {
             var stack = mc.player.getMainHandStack();
             if (!stack.isIn(ItemTags.SWORDS) && !stack.isIn(ItemTags.AXES)) return;
         }
         
-        // Check if crosshair is on a player
+         
         if (mc.crosshairTarget instanceof EntityHitResult res
                 && res.getType() == HitResult.Type.ENTITY
                 && res.getEntity() instanceof PlayerEntity target) {
             
-            // Validate target
+             
             if (target == mc.player || !target.isAlive() || target.isSpectator()) return;
             if (mc.player.squaredDistanceTo(target) > Math.pow(hitRange, 2)) return;
             
-            // Check cooldown for 1.9+ mode
+             
             if (mode.equals("1.9")) {
                 if (mc.player.getAttackCooldownProgress(0.5f) < (float) cooldownProgress / 100f) return;
             }
             
-            // Check crit timing
+             
             if (critTiming && (mc.player.isOnGround() || mc.player.fallDistance <= 0)) return;
             
-            // Check delay
+             
             long now = System.currentTimeMillis();
             if (now - lastHitTime >= nextDelay) {
-                // Attack the target
+                 
                 mc.interactionManager.attackEntity(mc.player, target);
                 mc.player.swingHand(Hand.MAIN_HAND);
                 
                 lastHitTime = now;
                 hitCounter++;
                 
-                // Handle blockhit for 1.8 mode
+                 
                 if (mode.equals("1.8") && blockhit && hitCounter >= hitsToBlock) {
                     startBlocking();
                 } else {
@@ -113,8 +113,8 @@ public class TriggerBot extends Module {
     private void startBlocking() {
         isBlocking = true;
         hitCounter = 0;
-        hitsToBlock = 4 + random.nextInt(2); // 4-5 hits before next block
-        long blockDuration = 350 + random.nextInt(101); // 350-450ms block
+        hitsToBlock = 4 + random.nextInt(2);  
+        long blockDuration = 350 + random.nextInt(101);  
         blockEndTime = System.currentTimeMillis() + blockDuration;
         
         mc.options.useKey.setPressed(true);
@@ -129,15 +129,15 @@ public class TriggerBot extends Module {
     
     private void calculateNextDelay() {
         if (mode.equals("1.8")) {
-            // Randomize CPS for more human-like behavior
-            double randomCps = cps + (random.nextDouble() * 6.0) - 3.0; // +/- 3 variation
+             
+            double randomCps = cps + (random.nextDouble() * 6.0) - 3.0;  
             nextDelay = (long) (1000.0 / Math.max(1.0, randomCps));
         } else {
-            nextDelay = 10; // Minimal delay for 1.9+
+            nextDelay = 10;  
         }
     }
     
-    // Getters and setters for settings (you can add these to a settings system later)
+     
     
     public void setMode(String mode) {
         this.mode = mode;

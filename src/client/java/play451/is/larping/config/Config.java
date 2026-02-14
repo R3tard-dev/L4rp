@@ -26,7 +26,7 @@ public class Config {
     private static final String GUI_CONFIG_FILE = "gui.json";
     private static final String MODULES_CONFIG_FILE = "modules.json";
     
-    // GUI Settings
+     
     public int guiX = 100;
     public int guiY = 100;
     public int guiWidth = 600;
@@ -45,7 +45,7 @@ public class Config {
     
     private void loadGui() {
         try {
-            // Create directories if they don't exist
+             
             if (!Files.exists(CONFIG_DIR)) {
                 Files.createDirectories(CONFIG_DIR);
                 Larp.LOGGER.info("Created config directory at " + CONFIG_DIR);
@@ -98,7 +98,7 @@ public class Config {
     
     public void saveGui() {
         try {
-            // Ensure directories exist
+             
             if (!Files.exists(CONFIG_DIR)) {
                 Files.createDirectories(CONFIG_DIR);
             }
@@ -115,7 +115,7 @@ public class Config {
     
     public void saveModules() {
         try {
-            // Ensure directories exist
+             
             if (!Files.exists(CONFIG_DIR)) {
                 Files.createDirectories(CONFIG_DIR);
             }
@@ -138,7 +138,7 @@ public class Config {
         }
     }
     
-    // Getters and setters
+     
     public int getGuiX() {
         return guiX;
     }
@@ -181,7 +181,7 @@ public class Config {
         saveGui();
     }
     
-    // Module config class
+     
     private static class ModuleConfig {
         boolean enabled;
         Map<String, Object> settings;

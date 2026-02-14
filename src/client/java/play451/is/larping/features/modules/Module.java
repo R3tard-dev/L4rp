@@ -17,7 +17,7 @@ public abstract class Module {
         this.category = category;
         this.enabled = false;
         
-        // Auto-register with ModuleManager
+         
         ModuleManager.getInstance().registerModule(this);
     }
     
@@ -51,21 +51,21 @@ public abstract class Module {
             onDisable();
         }
         
-        // Save config when module state changes
+         
         Config.getInstance().saveModules();
     }
     
-    // Override these in your modules
+     
     public void onEnable() {}
     public void onDisable() {}
     public void onTick() {}
     
-    // Save/load settings - override in modules with settings
+     
     public Map<String, Object> saveSettings() {
         return new HashMap<>();
     }
     
     public void loadSettings(Map<String, Object> settings) {
-        // Override in modules with settings
+         
     }
 }
