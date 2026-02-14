@@ -17,6 +17,7 @@ public class LarpClient implements ClientModInitializer {
         
          
         new TriggerBot();
+        new AimAssist();
         new ExampleMovementModule();
         
          
