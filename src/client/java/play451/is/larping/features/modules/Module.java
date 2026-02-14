@@ -1,5 +1,10 @@
 package play451.is.larping.features.modules;
 
+import play451.is.larping.config.Config;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class Module {
     private final String name;
     private final String description;
@@ -45,10 +50,22 @@ public abstract class Module {
         } else {
             onDisable();
         }
+        
+        // Save config when module state changes
+        Config.getInstance().saveModules();
     }
     
     // Override these in your modules
     public void onEnable() {}
     public void onDisable() {}
     public void onTick() {}
+    
+    // Save/load settings - override in modules with settings
+    public Map<String, Object> saveSettings() {
+        return new HashMap<>();
+    }
+    
+    public void loadSettings(Map<String, Object> settings) {
+        // Override in modules with settings
+    }
 }

@@ -123,9 +123,6 @@ public class ClickGui extends Screen {
             }
             
             // Icon and text
-            int iconColor = isSelected ? TEXT_PRIMARY : TEXT_SECONDARY;
-            context.drawText(this.textRenderer, category.getIcon(), 
-                x + 20, categoryY + 13, iconColor, false);
             
             int textColor = isSelected ? TEXT_PRIMARY : TEXT_SECONDARY;
             context.drawText(this.textRenderer, category.getName(), 
@@ -151,9 +148,6 @@ public class ClickGui extends Screen {
         
         List<Module> modules = ModuleManager.getInstance().getModulesByCategory(selectedCategory);
         
-        // Category header
-        context.drawText(this.textRenderer, selectedCategory.getIcon(), 
-            contentX, contentY - 5, ACCENT, false);
         context.drawTextWithShadow(this.textRenderer, selectedCategory.getName(), 
             contentX + 20, contentY - 5, TEXT_PRIMARY);
         

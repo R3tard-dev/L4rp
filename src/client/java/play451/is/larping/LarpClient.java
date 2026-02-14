@@ -13,7 +13,7 @@ public class LarpClient implements ClientModInitializer {
         Larp.LOGGER.info("L4rp client initialized");
         GuiKeybind.register();
 
-        new ExampleCombatModule();
+        new TriggerBot();
         new ExampleMovementModule();
     }
 }

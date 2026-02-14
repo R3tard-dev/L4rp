@@ -2,15 +2,20 @@ package play451.is.larping.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import net.fabricmc.loader.api.FabricLoader;
 import play451.is.larping.Larp;
+import play451.is.larping.features.modules.Module;
+import play451.is.larping.features.modules.ModuleManager;
 
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Config {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -18,7 +23,8 @@ public class Config {
             .getGameDir()
             .resolve("l4rp")
             .resolve("config");
-    private static final String CONFIG_FILE = "settings.json";
+    private static final String GUI_CONFIG_FILE = "gui.json";
+    private static final String MODULES_CONFIG_FILE = "modules.json";
     
     // GUI Settings
     public int guiX = 100;
@@ -30,12 +36,14 @@ public class Config {
     
     public static Config getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = load();
+            INSTANCE = new Config();
+            INSTANCE.loadGui();
+            INSTANCE.loadModules();
         }
         return INSTANCE;
     }
     
-    public static Config load() {
+    private void loadGui() {
         try {
             // Create directories if they don't exist
             if (!Files.exists(CONFIG_DIR)) {
@@ -43,38 +51,90 @@ public class Config {
                 Larp.LOGGER.info("Created config directory at " + CONFIG_DIR);
             }
             
-            Path configPath = CONFIG_DIR.resolve(CONFIG_FILE);
+            Path configPath = CONFIG_DIR.resolve(GUI_CONFIG_FILE);
             
             if (Files.exists(configPath)) {
                 try (FileReader reader = new FileReader(configPath.toFile())) {
-                    Config config = GSON.fromJson(reader, Config.class);
-                    Larp.LOGGER.info("Loaded config from " + configPath);
-                    return config != null ? config : new Config();
+                    Config loaded = GSON.fromJson(reader, Config.class);
+                    if (loaded != null) {
+                        this.guiX = loaded.guiX;
+                        this.guiY = loaded.guiY;
+                        this.guiWidth = loaded.guiWidth;
+                        this.guiHeight = loaded.guiHeight;
+                    }
+                    Larp.LOGGER.info("Loaded GUI config from " + configPath);
                 }
             }
         } catch (IOException e) {
-            Larp.LOGGER.error("Failed to load config", e);
+            Larp.LOGGER.error("Failed to load GUI config", e);
         }
-        
-        Config config = new Config();
-        config.save(); // Save default config
-        return config;
     }
     
-    public void save() {
+    private void loadModules() {
+        try {
+            Path configPath = CONFIG_DIR.resolve(MODULES_CONFIG_FILE);
+            
+            if (Files.exists(configPath)) {
+                try (FileReader reader = new FileReader(configPath.toFile())) {
+                    Type type = new TypeToken<Map<String, ModuleConfig>>(){}.getType();
+                    Map<String, ModuleConfig> configs = GSON.fromJson(reader, type);
+                    
+                    if (configs != null) {
+                        for (Module module : ModuleManager.getInstance().getModules()) {
+                            ModuleConfig config = configs.get(module.getName());
+                            if (config != null) {
+                                module.setEnabled(config.enabled);
+                                module.loadSettings(config.settings);
+                            }
+                        }
+                    }
+                    Larp.LOGGER.info("Loaded module configs from " + configPath);
+                }
+            }
+        } catch (IOException e) {
+            Larp.LOGGER.error("Failed to load module configs", e);
+        }
+    }
+    
+    public void saveGui() {
         try {
             // Ensure directories exist
             if (!Files.exists(CONFIG_DIR)) {
                 Files.createDirectories(CONFIG_DIR);
             }
             
-            Path configPath = CONFIG_DIR.resolve(CONFIG_FILE);
+            Path configPath = CONFIG_DIR.resolve(GUI_CONFIG_FILE);
             try (FileWriter writer = new FileWriter(configPath.toFile())) {
                 GSON.toJson(this, writer);
-                Larp.LOGGER.info("Saved config to " + configPath);
+                Larp.LOGGER.info("Saved GUI config to " + configPath);
             }
         } catch (IOException e) {
-            Larp.LOGGER.error("Failed to save config", e);
+            Larp.LOGGER.error("Failed to save GUI config", e);
+        }
+    }
+    
+    public void saveModules() {
+        try {
+            // Ensure directories exist
+            if (!Files.exists(CONFIG_DIR)) {
+                Files.createDirectories(CONFIG_DIR);
+            }
+            
+            Map<String, ModuleConfig> configs = new HashMap<>();
+            for (Module module : ModuleManager.getInstance().getModules()) {
+                ModuleConfig config = new ModuleConfig();
+                config.enabled = module.isEnabled();
+                config.settings = module.saveSettings();
+                configs.put(module.getName(), config);
+            }
+            
+            Path configPath = CONFIG_DIR.resolve(MODULES_CONFIG_FILE);
+            try (FileWriter writer = new FileWriter(configPath.toFile())) {
+                GSON.toJson(configs, writer);
+                Larp.LOGGER.info("Saved module configs to " + configPath);
+            }
+        } catch (IOException e) {
+            Larp.LOGGER.error("Failed to save module configs", e);
         }
     }
     
@@ -85,7 +145,7 @@ public class Config {
     
     public void setGuiX(int guiX) {
         this.guiX = guiX;
-        save();
+        saveGui();
     }
     
     public int getGuiY() {
@@ -94,7 +154,7 @@ public class Config {
     
     public void setGuiY(int guiY) {
         this.guiY = guiY;
-        save();
+        saveGui();
     }
     
     public int getGuiWidth() {
@@ -103,7 +163,7 @@ public class Config {
     
     public void setGuiWidth(int guiWidth) {
         this.guiWidth = guiWidth;
-        save();
+        saveGui();
     }
     
     public int getGuiHeight() {
@@ -112,12 +172,18 @@ public class Config {
     
     public void setGuiHeight(int guiHeight) {
         this.guiHeight = guiHeight;
-        save();
+        saveGui();
     }
     
     public void setGuiPosition(int x, int y) {
         this.guiX = x;
         this.guiY = y;
-        save();
+        saveGui();
+    }
+    
+    // Module config class
+    private static class ModuleConfig {
+        boolean enabled;
+        Map<String, Object> settings;
     }
 }
