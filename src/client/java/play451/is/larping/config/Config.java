@@ -26,11 +26,11 @@ public class Config {
     private static final String GUI_CONFIG_FILE = "gui.json";
     private static final String MODULES_CONFIG_FILE = "modules.json";
     
-     
+    
     public int guiX = 100;
     public int guiY = 100;
-    public int guiWidth = 600;
-    public int guiHeight = 420;
+    public int guiWidth = 480;
+    public int guiHeight = 360;
     
     private static Config INSTANCE;
     
@@ -45,7 +45,7 @@ public class Config {
     
     private void loadGui() {
         try {
-             
+            
             if (!Files.exists(CONFIG_DIR)) {
                 Files.createDirectories(CONFIG_DIR);
                 Larp.LOGGER.info("Created config directory at " + CONFIG_DIR);
@@ -83,11 +83,11 @@ public class Config {
                         for (Module module : ModuleManager.getInstance().getModules()) {
                             ModuleConfig config = configs.get(module.getName());
                             if (config != null) {
-                                 
+                                
                                 if (config.settings != null) {
                                     module.loadSettings(config.settings);
                                 }
-                                 
+                                
                                 if (config.enabled) {
                                     module.setEnabled(true);
                                 }
@@ -104,7 +104,7 @@ public class Config {
     
     public void saveGui() {
         try {
-             
+            
             if (!Files.exists(CONFIG_DIR)) {
                 Files.createDirectories(CONFIG_DIR);
             }
@@ -121,7 +121,7 @@ public class Config {
     
     public void saveModules() {
         try {
-             
+            
             if (!Files.exists(CONFIG_DIR)) {
                 Files.createDirectories(CONFIG_DIR);
             }
@@ -144,7 +144,7 @@ public class Config {
         }
     }
     
-     
+    
     public int getGuiX() {
         return guiX;
     }
@@ -187,7 +187,7 @@ public class Config {
         saveGui();
     }
     
-     
+    
     private static class ModuleConfig {
         boolean enabled;
         Map<String, Object> settings;

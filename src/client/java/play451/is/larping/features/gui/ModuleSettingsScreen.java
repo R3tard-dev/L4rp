@@ -13,18 +13,18 @@ public class ModuleSettingsScreen extends Screen {
     
     private int x;
     private int y;
-    private int width = 400;
-    private int height = 300;
+    private int width = 360;
+    private int height = 280;
     
-     
+    
     private boolean dragging = false;
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
     
-     
+    
     private static final int BG_DARK = 0xF0050505;
     private static final int SIDEBAR_BG = 0xF0080808;
-    private static final int ACCENT = 0xFF1E90FF;  
+    private static final int ACCENT = 0xFF1E90FF; 
     private static final int ACCENT_DARK = 0xFF1873CC;
     private static final int TEXT_PRIMARY = 0xFFF0F0F0;
     private static final int TEXT_SECONDARY = 0xFF999999;
@@ -43,27 +43,27 @@ public class ModuleSettingsScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        this.x = (this.width - 400) / 2;
-        this.y = (this.height - 300) / 2;
+        this.x = (this.width - 360) / 2;
+        this.y = (this.height - 280) / 2;
     }
     
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-         
+        
         context.fillGradient(0, 0, this.width, this.height, 0xB0000000, 0xB0000000);
         
-         
+        
         drawGlow(context, x, y, width, height);
         
-         
+        
         drawRoundedRect(context, x, y, width, height, BG_DARK);
         
-         
+        
         context.fill(x, y, x + width, y + 30, 0xFF000000);
         context.drawTextWithShadow(this.textRenderer, module.getName() + " Settings", 
             x + 10, y + 10, TEXT_PRIMARY);
         
-         
+        
         int closeX = x + width - 25;
         int closeY = y + 8;
         boolean closeHovered = mouseX >= closeX && mouseX <= closeX + 15 &&
@@ -71,22 +71,22 @@ public class ModuleSettingsScreen extends Screen {
         context.drawText(this.textRenderer, "X", closeX + 4, closeY + 3, 
             closeHovered ? 0xFFFF5555 : TEXT_PRIMARY, false);
         
-         
+        
         int contentY = y + 45;
         
-         
+        
         if (module instanceof TriggerBot) {
             renderTriggerBotSettings(context, mouseX, mouseY, contentY);
         } else {
-             
+            
             context.drawText(this.textRenderer, "No settings available for this module", 
                 x + width / 2 - 80, contentY + 50, TEXT_SECONDARY, false);
         }
         
-         
+        
         context.fill(x, y + height - 40, x + width, y + height - 39, BORDER_SUBTLE);
         
-         
+        
         int backX = x + 10;
         int backY = y + height - 35;
         int backWidth = 60;
@@ -103,11 +103,11 @@ public class ModuleSettingsScreen extends Screen {
         TriggerBot trigger = (TriggerBot) module;
         int settingY = startY;
         
-         
+        
         context.drawText(this.textRenderer, "Mode:", x + 20, settingY, TEXT_PRIMARY, false);
         String modeValue = trigger.getMode();
         
-         
+        
         int modeX = x + 150;
         for (String mode : new String[]{"1.8", "1.9"}) {
             boolean isSelected = mode.equals(modeValue);
@@ -121,13 +121,13 @@ public class ModuleSettingsScreen extends Screen {
         }
         settingY += 35;
         
-         
+        
         if (modeValue.equals("1.8")) {
             context.drawText(this.textRenderer, "CPS:", x + 20, settingY, TEXT_PRIMARY, false);
             context.drawText(this.textRenderer, String.format("%.1f", trigger.getCPS()), 
                 x + 150, settingY, TEXT_SECONDARY, false);
             
-             
+            
             int sliderX = x + 200;
             int sliderY = settingY;
             int sliderWidth = 150;
@@ -135,20 +135,20 @@ public class ModuleSettingsScreen extends Screen {
                 trigger.getCPS(), 1.0, 20.0);
             settingY += 35;
             
-             
+            
             context.drawText(this.textRenderer, "Blockhit:", x + 20, settingY, TEXT_PRIMARY, false);
             boolean blockhit = trigger.isBlockhit();
             renderToggleButton(context, mouseX, mouseY, x + 150, settingY - 5, blockhit);
             settingY += 35;
         }
         
-         
+        
         if (modeValue.equals("1.9")) {
             context.drawText(this.textRenderer, "Cooldown %:", x + 20, settingY, TEXT_PRIMARY, false);
             context.drawText(this.textRenderer, String.format("%.0f%%", trigger.getCooldownProgress()), 
                 x + 150, settingY, TEXT_SECONDARY, false);
             
-             
+            
             int sliderX = x + 220;
             int sliderY = settingY;
             int sliderWidth = 130;
@@ -157,7 +157,7 @@ public class ModuleSettingsScreen extends Screen {
             settingY += 35;
         }
         
-         
+        
         context.drawText(this.textRenderer, "Hit Range:", x + 20, settingY, TEXT_PRIMARY, false);
         context.drawText(this.textRenderer, String.format("%.1f", trigger.getHitRange()), 
             x + 150, settingY, TEXT_SECONDARY, false);
@@ -169,27 +169,27 @@ public class ModuleSettingsScreen extends Screen {
             trigger.getHitRange(), 1.0, 7.0);
         settingY += 35;
         
-         
+        
         context.drawText(this.textRenderer, "Crit Timing:", x + 20, settingY, TEXT_PRIMARY, false);
         renderToggleButton(context, mouseX, mouseY, x + 150, settingY - 5, trigger.isCritTiming());
         settingY += 35;
         
-         
+        
         context.drawText(this.textRenderer, "Require Weapon:", x + 20, settingY, TEXT_PRIMARY, false);
         renderToggleButton(context, mouseX, mouseY, x + 150, settingY - 5, trigger.isRequireWeapon());
     }
     
     private void renderSlider(DrawContext context, int mouseX, int mouseY, 
                               int x, int y, int width, double value, double min, double max) {
-         
+        
         drawRoundedRect(context, x, y - 2, width, 4, 0xFF2A2A2A);
         
-         
+        
         double percent = (value - min) / (max - min);
         int fillWidth = (int) (width * percent);
         drawRoundedRect(context, x, y - 2, fillWidth, 4, ACCENT);
         
-         
+        
         int handleX = x + fillWidth - 4;
         drawRoundedRect(context, handleX, y - 6, 8, 12, TEXT_PRIMARY);
     }
@@ -202,12 +202,12 @@ public class ModuleSettingsScreen extends Screen {
         boolean isHovered = mouseX >= x && mouseX <= x + width &&
                            mouseY >= y && mouseY <= y + height;
         
-         
+        
         int bgColor = enabled ? ENABLED_GLOW : BUTTON_BG;
         if (isHovered && !enabled) bgColor = BUTTON_HOVER;
         drawRoundedRect(context, x, y, width, height, bgColor);
         
-         
+        
         int circleX = enabled ? x + width - 18 : x + 2;
         drawRoundedRect(context, circleX, y + 2, 16, 16, TEXT_PRIMARY);
     }
@@ -222,7 +222,7 @@ public class ModuleSettingsScreen extends Screen {
     }
     
     private void drawGlow(DrawContext context, int x, int y, int width, int height) {
-         
+        
         int glowColor = 0x20000000;
         context.fill(x - 1, y - 1, x + width + 1, y, glowColor);
         context.fill(x - 1, y + height, x + width + 1, y + height + 1, glowColor);
@@ -233,9 +233,9 @@ public class ModuleSettingsScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-             
+            
             if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 30) {
-                 
+                
                 int closeX = x + width - 25;
                 int closeY = y + 8;
                 if (!(mouseX >= closeX && mouseX <= closeX + 15 &&
@@ -247,7 +247,7 @@ public class ModuleSettingsScreen extends Screen {
                 }
             }
             
-             
+            
             int closeX = x + width - 25;
             int closeY = y + 8;
             if (mouseX >= closeX && mouseX <= closeX + 15 &&
@@ -256,7 +256,7 @@ public class ModuleSettingsScreen extends Screen {
                 return true;
             }
             
-             
+            
             int backX = x + 10;
             int backY = y + height - 35;
             if (mouseX >= backX && mouseX <= backX + 60 &&
@@ -265,7 +265,7 @@ public class ModuleSettingsScreen extends Screen {
                 return true;
             }
             
-             
+            
             if (module instanceof TriggerBot) {
                 return handleTriggerBotClicks(mouseX, mouseY);
             }
@@ -295,7 +295,7 @@ public class ModuleSettingsScreen extends Screen {
         TriggerBot trigger = (TriggerBot) module;
         int settingY = y + 45;
         
-         
+        
         int modeX = x + 150;
         for (String mode : new String[]{"1.8", "1.9"}) {
             if (mouseX >= modeX && mouseX <= modeX + 40 &&
@@ -309,7 +309,7 @@ public class ModuleSettingsScreen extends Screen {
         
         String modeValue = trigger.getMode();
         
-         
+        
         if (modeValue.equals("1.8")) {
             if (handleSliderClick(mouseX, mouseY, x + 200, settingY, 150, 1.0, 20.0, trigger.getCPS())) {
                 double newValue = calculateSliderValue(mouseX, x + 200, 150, 1.0, 20.0);
@@ -318,7 +318,7 @@ public class ModuleSettingsScreen extends Screen {
             }
             settingY += 35;
             
-             
+            
             if (mouseX >= x + 150 && mouseX <= x + 192 &&
                 mouseY >= settingY - 5 && mouseY <= settingY + 15) {
                 trigger.setBlockhit(!trigger.isBlockhit());
@@ -327,7 +327,7 @@ public class ModuleSettingsScreen extends Screen {
             settingY += 35;
         }
         
-         
+        
         if (modeValue.equals("1.9")) {
             if (handleSliderClick(mouseX, mouseY, x + 220, settingY, 130, 0.0, 100.0, trigger.getCooldownProgress())) {
                 double newValue = calculateSliderValue(mouseX, x + 220, 130, 0.0, 100.0);
@@ -337,7 +337,7 @@ public class ModuleSettingsScreen extends Screen {
             settingY += 35;
         }
         
-         
+        
         if (handleSliderClick(mouseX, mouseY, x + 200, settingY, 150, 1.0, 7.0, trigger.getHitRange())) {
             double newValue = calculateSliderValue(mouseX, x + 200, 150, 1.0, 7.0);
             trigger.setHitRange(newValue);
@@ -345,7 +345,7 @@ public class ModuleSettingsScreen extends Screen {
         }
         settingY += 35;
         
-         
+        
         if (mouseX >= x + 150 && mouseX <= x + 192 &&
             mouseY >= settingY - 5 && mouseY <= settingY + 15) {
             trigger.setCritTiming(!trigger.isCritTiming());
@@ -353,7 +353,7 @@ public class ModuleSettingsScreen extends Screen {
         }
         settingY += 35;
         
-         
+        
         if (mouseX >= x + 150 && mouseX <= x + 192 &&
             mouseY >= settingY - 5 && mouseY <= settingY + 15) {
             trigger.setRequireWeapon(!trigger.isRequireWeapon());
