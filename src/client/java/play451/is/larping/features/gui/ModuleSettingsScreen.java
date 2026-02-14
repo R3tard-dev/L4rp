@@ -17,14 +17,22 @@ public class ModuleSettingsScreen extends Screen {
     private int height = 300;
     
      
+    private boolean dragging = false;
+    private int dragOffsetX = 0;
+    private int dragOffsetY = 0;
+    
+     
     private static final int BG_DARK = 0xF0050505;
     private static final int SIDEBAR_BG = 0xF0080808;
-    private static final int ACCENT = 0xFF7C3AED;
+    private static final int ACCENT = 0xFF1E90FF;  
+    private static final int ACCENT_DARK = 0xFF1873CC;
     private static final int TEXT_PRIMARY = 0xFFF0F0F0;
     private static final int TEXT_SECONDARY = 0xFF999999;
     private static final int TEXT_DIM = 0xFF666666;
     private static final int BUTTON_BG = 0xFF1A1A1A;
     private static final int BUTTON_HOVER = 0xFF252525;
+    private static final int ENABLED_GLOW = 0xFF10B981;
+    private static final int BORDER_SUBTLE = 0xFF151515;
     
     public ModuleSettingsScreen(Screen parent, Module module) {
         super(Text.literal("Module Settings"));
@@ -45,10 +53,13 @@ public class ModuleSettingsScreen extends Screen {
         context.fillGradient(0, 0, this.width, this.height, 0xB0000000, 0xB0000000);
         
          
+        drawGlow(context, x, y, width, height);
+        
+         
         drawRoundedRect(context, x, y, width, height, BG_DARK);
         
          
-        context.fill(x, y, x + width, y + 30, ACCENT);
+        context.fill(x, y, x + width, y + 30, 0xFF000000);
         context.drawTextWithShadow(this.textRenderer, module.getName() + " Settings", 
             x + 10, y + 10, TEXT_PRIMARY);
         
@@ -71,6 +82,9 @@ public class ModuleSettingsScreen extends Screen {
             context.drawText(this.textRenderer, "No settings available for this module", 
                 x + width / 2 - 80, contentY + 50, TEXT_SECONDARY, false);
         }
+        
+         
+        context.fill(x, y + height - 40, x + width, y + height - 39, BORDER_SUBTLE);
         
          
         int backX = x + 10;
@@ -189,8 +203,8 @@ public class ModuleSettingsScreen extends Screen {
                            mouseY >= y && mouseY <= y + height;
         
          
-        int bgColor = enabled ? 0xFF10B981 : 0xFF2A2A2A;
-        if (isHovered && !enabled) bgColor = 0xFF353535;
+        int bgColor = enabled ? ENABLED_GLOW : BUTTON_BG;
+        if (isHovered && !enabled) bgColor = BUTTON_HOVER;
         drawRoundedRect(context, x, y, width, height, bgColor);
         
          
@@ -207,9 +221,32 @@ public class ModuleSettingsScreen extends Screen {
         context.fill(x + width - 2, y + height - 2, x + width - 1, y + height - 1, color);
     }
     
+    private void drawGlow(DrawContext context, int x, int y, int width, int height) {
+         
+        int glowColor = 0x20000000;
+        context.fill(x - 1, y - 1, x + width + 1, y, glowColor);
+        context.fill(x - 1, y + height, x + width + 1, y + height + 1, glowColor);
+        context.fill(x - 1, y - 1, x, y + height + 1, glowColor);
+        context.fill(x + width, y - 1, x + width + 1, y + height + 1, glowColor);
+    }
+    
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
+             
+            if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 30) {
+                 
+                int closeX = x + width - 25;
+                int closeY = y + 8;
+                if (!(mouseX >= closeX && mouseX <= closeX + 15 &&
+                      mouseY >= closeY && mouseY <= closeY + 15)) {
+                    dragging = true;
+                    dragOffsetX = (int) (mouseX - x);
+                    dragOffsetY = (int) (mouseY - y);
+                    return true;
+                }
+            }
+            
              
             int closeX = x + width - 25;
             int closeY = y + 8;
@@ -234,6 +271,24 @@ public class ModuleSettingsScreen extends Screen {
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+    
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (dragging) {
+            x = (int) (mouseX - dragOffsetX);
+            y = (int) (mouseY - dragOffsetY);
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    }
+    
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0) {
+            dragging = false;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
     
     private boolean handleTriggerBotClicks(double mouseX, double mouseY) {

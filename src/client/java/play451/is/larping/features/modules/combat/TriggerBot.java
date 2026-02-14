@@ -33,7 +33,7 @@ public class TriggerBot extends Module {
     private final MinecraftClient mc = MinecraftClient.getInstance();
     
     public TriggerBot() {
-        super("TriggerBot", "Auto attack when crosshair is on target", ModuleCategory.COMBAT);
+        super("TriggerBot", "Its a triggerbot", ModuleCategory.COMBAT);
     }
     
     @Override

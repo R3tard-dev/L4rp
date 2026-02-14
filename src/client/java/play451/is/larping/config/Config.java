@@ -83,15 +83,21 @@ public class Config {
                         for (Module module : ModuleManager.getInstance().getModules()) {
                             ModuleConfig config = configs.get(module.getName());
                             if (config != null) {
-                                module.setEnabled(config.enabled);
-                                module.loadSettings(config.settings);
+                                 
+                                if (config.settings != null) {
+                                    module.loadSettings(config.settings);
+                                }
+                                 
+                                if (config.enabled) {
+                                    module.setEnabled(true);
+                                }
                             }
                         }
                     }
                     Larp.LOGGER.info("Loaded module configs from " + configPath);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             Larp.LOGGER.error("Failed to load module configs", e);
         }
     }

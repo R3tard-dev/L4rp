@@ -52,7 +52,9 @@ public abstract class Module {
         }
         
          
-        Config.getInstance().saveModules();
+        if (ModuleManager.getInstance().getModules().size() > 0) {
+            Config.getInstance().saveModules();
+        }
     }
     
      

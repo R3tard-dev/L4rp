@@ -35,9 +35,9 @@ public class ClickGui extends Screen {
     private static final int BG_DARK = 0xF0050505;
     private static final int BG_DARKER = 0xF0020202;
     private static final int SIDEBAR_BG = 0xF0080808;
-    private static final int ACCENT = 0xFF7C3AED;  
-    private static final int ACCENT_DARK = 0xFF6D28D9;
-    private static final int ACCENT_GLOW = 0x407C3AED;
+    private static final int ACCENT = 0xFF1E90FF;
+    private static final int ACCENT_DARK = 0xFF1873CC;
+    private static final int ACCENT_GLOW = 0x401E90FF;
     private static final int TEXT_PRIMARY = 0xFFF0F0F0;
     private static final int TEXT_SECONDARY = 0xFF999999;
     private static final int TEXT_DIM = 0xFF666666;
