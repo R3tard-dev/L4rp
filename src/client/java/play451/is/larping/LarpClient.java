@@ -23,7 +23,7 @@ public class LarpClient implements ClientModInitializer {
         new AnchorMacro();
         new KeyPearl();
 
-        new ExampleMovementModule();
+        new AutoWalk();
         
          
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
