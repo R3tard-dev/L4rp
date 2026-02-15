@@ -18,6 +18,11 @@ public class LarpClient implements ClientModInitializer {
          
         new TriggerBot();
         new AimAssist();
+        new AutoTotem();
+        new HitCrystal();
+        new AnchorMacro();
+        new KeyPearl();
+
         new ExampleMovementModule();
         
          
