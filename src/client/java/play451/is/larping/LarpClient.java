@@ -6,6 +6,8 @@ import play451.is.larping.features.gui.GuiKeybind;
 import play451.is.larping.features.modules.ModuleManager;
 import play451.is.larping.features.modules.combat.*;
 import play451.is.larping.features.modules.movement.*;
+import play451.is.larping.features.modules.render.*;
+
 
 public class LarpClient implements ClientModInitializer {
     @Override
@@ -24,6 +26,8 @@ public class LarpClient implements ClientModInitializer {
         new KeyPearl();
 
         new AutoWalk();
+
+        new Fullbright();
         
          
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
