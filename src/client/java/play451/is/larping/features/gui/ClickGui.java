@@ -121,11 +121,15 @@ public class ClickGui extends Screen {
     
     private void drawModernShadow(DrawContext context, int x, int y, int width, int height) {
          
-        int shadowSize = 8;
+        int shadowSize = 12;  
+        
         for (int i = 0; i < shadowSize; i++) {
-            int alpha = (shadowSize - i) * 4;
+             
+            float progress = (float) (shadowSize - i) / shadowSize;
+            int alpha = (int) (Math.pow(progress, 2) * 40);  
             int shadowColor = (alpha << 24);
             
+             
              
             context.fillGradient(x - i, y - i, x + width + i, y - i + 1, shadowColor, shadowColor);
              
@@ -229,6 +233,11 @@ public class ClickGui extends Screen {
             drawRoundedRect(context, moduleX, moduleY, moduleWidth, moduleHeight, bgColor);
             
              
+            if (!module.isEnabled()) {
+                drawInnerShadow(context, moduleX, moduleY, moduleWidth, moduleHeight);
+            }
+            
+             
             if (module.isEnabled()) {
                 context.fill(moduleX, moduleY + 5, moduleX + 2, moduleY + moduleHeight - 5, ACCENT);
                  
@@ -296,38 +305,96 @@ public class ClickGui extends Screen {
     }
     
     private void drawRoundedRect(DrawContext context, int x, int y, int width, int height, int color) {
-        int radius = 4;  
+        int radius = 6;  
         
          
         context.fill(x + radius, y, x + width - radius, y + height, color);
         context.fill(x, y + radius, x + width, y + height - radius, color);
         
          
-        drawCircleCorner(context, x + radius, y + radius, radius, color, 0);  
-        drawCircleCorner(context, x + width - radius, y + radius, radius, color, 1);  
-        drawCircleCorner(context, x + radius, y + height - radius, radius, color, 2);  
-        drawCircleCorner(context, x + width - radius, y + height - radius, radius, color, 3);  
+        drawSmoothCorner(context, x + radius, y + radius, radius, color, 0);  
+        drawSmoothCorner(context, x + width - radius, y + radius, radius, color, 1);  
+        drawSmoothCorner(context, x + radius, y + height - radius, radius, color, 2);  
+        drawSmoothCorner(context, x + width - radius, y + height - radius, radius, color, 3);  
     }
     
-    private void drawCircleCorner(DrawContext context, int centerX, int centerY, int radius, int color, int corner) {
+    private void drawSmoothCorner(DrawContext context, int centerX, int centerY, int radius, int color, int corner) {
          
-        for (int i = 0; i < radius; i++) {
-            for (int j = 0; j < radius; j++) {
+        int alpha = (color >> 24) & 0xFF;
+        int rgb = color & 0x00FFFFFF;
+        
+         
+        for (int i = -radius; i <= radius; i++) {
+            for (int j = -radius; j <= radius; j++) {
                 double distance = Math.sqrt(i * i + j * j);
+                
                 if (distance <= radius) {
+                     
+                    double edgeDistance = radius - distance;
+                    int pixelAlpha = alpha;
+                    
+                    if (edgeDistance < 1.0) {
+                         
+                        pixelAlpha = (int) (alpha * edgeDistance);
+                    }
+                    
+                    int smoothColor = (pixelAlpha << 24) | rgb;
+                    
                     int x = centerX;
                     int y = centerY;
                     
+                     
+                    boolean draw = false;
                     switch (corner) {
-                        case 0: x -= i; y -= j; break;  
-                        case 1: x += i; y -= j; break;  
-                        case 2: x -= i; y += j; break;  
-                        case 3: x += i; y += j; break;  
+                        case 0:  
+                            if (i <= 0 && j <= 0) {
+                                x += i;
+                                y += j;
+                                draw = true;
+                            }
+                            break;
+                        case 1:  
+                            if (i >= 0 && j <= 0) {
+                                x += i;
+                                y += j;
+                                draw = true;
+                            }
+                            break;
+                        case 2:  
+                            if (i <= 0 && j >= 0) {
+                                x += i;
+                                y += j;
+                                draw = true;
+                            }
+                            break;
+                        case 3:  
+                            if (i >= 0 && j >= 0) {
+                                x += i;
+                                y += j;
+                                draw = true;
+                            }
+                            break;
                     }
                     
-                    context.fill(x, y, x + 1, y + 1, color);
+                    if (draw) {
+                        context.fill(x, y, x + 1, y + 1, smoothColor);
+                    }
                 }
             }
+        }
+    }
+    
+    private void drawInnerShadow(DrawContext context, int x, int y, int width, int height) {
+         
+        int shadowDepth = 2;
+        for (int i = 0; i < shadowDepth; i++) {
+            int alpha = (shadowDepth - i) * 8;
+            int shadowColor = (alpha << 24);
+            
+             
+            context.fillGradient(x + 1, y + i, x + width - 1, y + i + 1, shadowColor, shadowColor);
+             
+            context.fillGradient(x + i, y + 1, x + i + 1, y + height - 1, shadowColor, shadowColor);
         }
     }
 
