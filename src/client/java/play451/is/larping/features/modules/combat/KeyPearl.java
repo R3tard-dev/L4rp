@@ -1,6 +1,7 @@
 package play451.is.larping.features.modules.combat;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -8,11 +9,13 @@ import net.minecraft.util.Hand;
 import play451.is.larping.config.Config;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleCategory;
+import play451.is.larping.features.modules.ModuleSettingsRenderer;
+import play451.is.larping.features.modules.SettingsHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class KeyPearl extends Module {
+public class KeyPearl extends Module implements ModuleSettingsRenderer {
     
      
     private boolean switchBack = true;  
@@ -160,5 +163,45 @@ public class KeyPearl extends Module {
     
     public int getThrowDelay() {
         return throwDelay;
+    }
+    
+     
+    @Override
+    public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+        helper.renderLabel(context, "Switch Back:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, switchBack);
+        settingY += 35;
+        
+        helper.renderLabel(context, "Throw Delay:", String.format("%d ticks", throwDelay), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, throwDelay, 0.0, 20.0);
+        settingY += 35;
+        
+        helper.renderInfo(context, "Automatically throws ender pearl when", startX, settingY);
+        helper.renderInfo(context, "activated, then disables itself.", startX, settingY + 10);
+        
+        return settingY + 20;
+    }
+    
+    @Override
+    public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setSwitchBack(!switchBack);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 0.0, 20.0);
+            setThrowDelay(newValue);
+            return true;
+        }
+        
+        return false;
     }
 }

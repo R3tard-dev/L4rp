@@ -1,6 +1,7 @@
 package play451.is.larping.features.modules.combat;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -8,12 +9,14 @@ import net.minecraft.util.math.Vec3d;
 import play451.is.larping.config.Config;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleCategory;
+import play451.is.larping.features.modules.ModuleSettingsRenderer;
+import play451.is.larping.features.modules.SettingsHelper;
 
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AimAssist extends Module {
+public class AimAssist extends Module implements ModuleSettingsRenderer {
     
      
     private boolean requireClicker = false;  
@@ -236,5 +239,86 @@ public class AimAssist extends Module {
     
     public String getAimMode() {
         return aimMode;
+    }
+    
+     
+    @Override
+    public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        helper.renderLabel(context, "Range:", String.format("%.1f", range), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, range, 1.0, 10.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Strength:", String.format("%.2f", strength), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, strength, 0.01, 1.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "FOV:", String.format("%.0f°", fov), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, fov, 10.0, 360.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Aim Mode:", null, startX, settingY);
+        helper.renderModeSelector(context, mouseX, mouseY, startX + 150, settingY, 
+            new String[]{"Dynamic", "Eyes"}, aimMode, 60);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Require Clicker:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, requireClicker);
+        
+        return settingY + 25;
+    }
+    
+    @Override
+    public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 10.0);
+            setRange(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 0.01, 1.0);
+            setStrength(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 10.0, 360.0);
+            setFov(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        int modeX = startX + 150;
+        for (String mode : new String[]{"Dynamic", "Eyes"}) {
+            if (helper.isModeButtonHovered(mouseX, mouseY, modeX, settingY, 60)) {
+                setAimMode(mode);
+                return true;
+            }
+            modeX += 65;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setRequireClicker(!requireClicker);
+            return true;
+        }
+        
+        return false;
     }
 }

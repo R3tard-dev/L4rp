@@ -3,6 +3,7 @@ package play451.is.larping.features.modules.combat;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -16,11 +17,13 @@ import org.lwjgl.glfw.GLFW;
 import play451.is.larping.config.Config;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleCategory;
+import play451.is.larping.features.modules.ModuleSettingsRenderer;
+import play451.is.larping.features.modules.SettingsHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnchorMacro extends Module {
+public class AnchorMacro extends Module implements ModuleSettingsRenderer {
     
      
     private int switchDelay = 0;  
@@ -258,5 +261,75 @@ public class AnchorMacro extends Module {
     
     public int getTotemSlot() {
         return totemSlot;
+    }
+    
+     
+    @Override
+    public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        helper.renderLabel(context, "Switch Delay:", String.format("%d ticks", switchDelay), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, switchDelay, 0.0, 20.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Glowstone Delay:", String.format("%d ticks", glowstoneDelay), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, glowstoneDelay, 0.0, 20.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Explode Delay:", String.format("%d ticks", explodeDelay), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, explodeDelay, 0.0, 20.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Totem Slot:", String.format("Slot %d", totemSlot), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, totemSlot, 1.0, 9.0);
+        settingY += 35;
+        
+         
+        helper.renderInfo(context, "Hold right-click on anchor to auto charge", startX, settingY);
+        helper.renderInfo(context, "and explode. Switches to totem slot.", startX, settingY + 10);
+        
+        return settingY + 20;
+    }
+    
+    @Override
+    public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 0.0, 20.0);
+            setSwitchDelay(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 0.0, 20.0);
+            setGlowstoneDelay(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 0.0, 20.0);
+            setExplodeDelay(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 9.0);
+            setTotemSlot(newValue);
+            return true;
+        }
+        
+        return false;
     }
 }

@@ -1,6 +1,7 @@
 package play451.is.larping.features.modules.combat;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -8,11 +9,13 @@ import net.minecraft.screen.slot.SlotActionType;
 import play451.is.larping.config.Config;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleCategory;
+import play451.is.larping.features.modules.ModuleSettingsRenderer;
+import play451.is.larping.features.modules.SettingsHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class AutoTotem extends Module {
+public class AutoTotem extends Module implements ModuleSettingsRenderer {
     
      
     private int delay = 3;  
@@ -35,7 +38,7 @@ public class AutoTotem extends Module {
     private final MinecraftClient mc = MinecraftClient.getInstance();
     
     public AutoTotem() {
-        super("AutoTotem", "auto totem", ModuleCategory.COMBAT);
+        super("AutoTotem", "Automatically moves totems to offhand", ModuleCategory.COMBAT);
     }
     
     @Override
@@ -253,5 +256,91 @@ public class AutoTotem extends Module {
     
     public int getInvCloseDelay() {
         return invCloseDelay;
+    }
+    
+     
+    @Override
+    public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        helper.renderLabel(context, "Delay:", String.format("%d ticks", delay), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, delay, 1.0, 20.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Move From Hotbar:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, moveFromHotbar);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Auto Open Inv:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, openInv);
+        settingY += 35;
+        
+         
+        if (openInv) {
+             
+            helper.renderLabel(context, "Open Delay:", String.format("%d ticks", invOpenDelay), startX + 20, settingY);
+            helper.renderSlider(context, startX + 200, settingY, 150, invOpenDelay, 1.0, 10.0);
+            settingY += 35;
+            
+             
+            helper.renderLabel(context, "Close Delay:", String.format("%d ticks", invCloseDelay), startX + 20, settingY);
+            helper.renderSlider(context, startX + 200, settingY, 150, invCloseDelay, 5.0, 20.0);
+            settingY += 35;
+        }
+        
+         
+        helper.renderInfo(context, "Automatically refills totem after pop", startX, settingY);
+        
+        return settingY + 20;
+    }
+    
+    @Override
+    public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 20.0);
+            setDelay(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setMoveFromHotbar(!moveFromHotbar);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setOpenInv(!openInv);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (openInv) {
+             
+            if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+                int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 10.0);
+                setInvOpenDelay(newValue);
+                return true;
+            }
+            settingY += 35;
+            
+             
+            if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+                int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 5.0, 20.0);
+                setInvCloseDelay(newValue);
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

@@ -1,17 +1,23 @@
 package play451.is.larping.features.modules.combat;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import play451.is.larping.config.Config;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleCategory;
+import play451.is.larping.features.modules.ModuleSettingsRenderer;
+import play451.is.larping.features.modules.SettingsHelper;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
-public class TriggerBot extends Module {
+public class TriggerBot extends Module implements ModuleSettingsRenderer {
     
      
     private String mode = "1.9";  
@@ -138,10 +144,35 @@ public class TriggerBot extends Module {
     }
     
      
+    @Override
+    public Map<String, Object> saveSettings() {
+        Map<String, Object> settings = new HashMap<>();
+        settings.put("mode", mode);
+        settings.put("cps", cps);
+        settings.put("blockhit", blockhit);
+        settings.put("cooldownProgress", cooldownProgress);
+        settings.put("hitRange", hitRange);
+        settings.put("critTiming", critTiming);
+        settings.put("requireWeapon", requireWeapon);
+        return settings;
+    }
     
+    @Override
+    public void loadSettings(Map<String, Object> settings) {
+        if (settings.containsKey("mode")) mode = (String) settings.get("mode");
+        if (settings.containsKey("cps")) cps = ((Number) settings.get("cps")).doubleValue();
+        if (settings.containsKey("blockhit")) blockhit = (Boolean) settings.get("blockhit");
+        if (settings.containsKey("cooldownProgress")) cooldownProgress = ((Number) settings.get("cooldownProgress")).doubleValue();
+        if (settings.containsKey("hitRange")) hitRange = ((Number) settings.get("hitRange")).doubleValue();
+        if (settings.containsKey("critTiming")) critTiming = (Boolean) settings.get("critTiming");
+        if (settings.containsKey("requireWeapon")) requireWeapon = (Boolean) settings.get("requireWeapon");
+    }
+    
+     
     public void setMode(String mode) {
         this.mode = mode;
         calculateNextDelay();
+        Config.getInstance().saveModules();
     }
     
     public String getMode() {
@@ -151,6 +182,7 @@ public class TriggerBot extends Module {
     public void setCPS(double cps) {
         this.cps = cps;
         calculateNextDelay();
+        Config.getInstance().saveModules();
     }
     
     public double getCPS() {
@@ -159,6 +191,7 @@ public class TriggerBot extends Module {
     
     public void setBlockhit(boolean blockhit) {
         this.blockhit = blockhit;
+        Config.getInstance().saveModules();
     }
     
     public boolean isBlockhit() {
@@ -167,6 +200,7 @@ public class TriggerBot extends Module {
     
     public void setCooldownProgress(double cooldownProgress) {
         this.cooldownProgress = cooldownProgress;
+        Config.getInstance().saveModules();
     }
     
     public double getCooldownProgress() {
@@ -175,6 +209,7 @@ public class TriggerBot extends Module {
     
     public void setHitRange(double hitRange) {
         this.hitRange = hitRange;
+        Config.getInstance().saveModules();
     }
     
     public double getHitRange() {
@@ -183,6 +218,7 @@ public class TriggerBot extends Module {
     
     public void setCritTiming(boolean critTiming) {
         this.critTiming = critTiming;
+        Config.getInstance().saveModules();
     }
     
     public boolean isCritTiming() {
@@ -191,9 +227,120 @@ public class TriggerBot extends Module {
     
     public void setRequireWeapon(boolean requireWeapon) {
         this.requireWeapon = requireWeapon;
+        Config.getInstance().saveModules();
     }
     
     public boolean isRequireWeapon() {
         return requireWeapon;
+    }
+    
+     
+    @Override
+    public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        helper.renderLabel(context, "Mode:", null, startX, settingY);
+        helper.renderModeSelector(context, mouseX, mouseY, startX + 150, settingY, 
+            new String[]{"1.8", "1.9"}, mode, 40);
+        settingY += 35;
+        
+         
+        if (mode.equals("1.8")) {
+            helper.renderLabel(context, "CPS:", String.format("%.1f", cps), startX, settingY);
+            helper.renderSlider(context, startX + 200, settingY, 150, cps, 1.0, 20.0);
+            settingY += 35;
+            
+            helper.renderLabel(context, "Blockhit:", null, startX, settingY);
+            helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, blockhit);
+            settingY += 35;
+        }
+        
+         
+        if (mode.equals("1.9")) {
+            helper.renderLabel(context, "Cooldown %:", String.format("%.0f%%", cooldownProgress), startX, settingY);
+            helper.renderSlider(context, startX + 220, settingY, 130, cooldownProgress, 0.0, 100.0);
+            settingY += 35;
+        }
+        
+         
+        helper.renderLabel(context, "Hit Range:", String.format("%.1f", hitRange), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, hitRange, 1.0, 7.0);
+        settingY += 35;
+        
+        helper.renderLabel(context, "Crit Timing:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, critTiming);
+        settingY += 35;
+        
+        helper.renderLabel(context, "Require Weapon:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, requireWeapon);
+        
+        return settingY + 25;
+    }
+    
+    @Override
+    public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        int modeX = startX + 150;
+        for (String modeOption : new String[]{"1.8", "1.9"}) {
+            if (helper.isModeButtonHovered(mouseX, mouseY, modeX, settingY, 40)) {
+                setMode(modeOption);
+                return true;
+            }
+            modeX += 45;
+        }
+        settingY += 35;
+        
+         
+        if (mode.equals("1.8")) {
+            if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+                double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 20.0);
+                setCPS(newValue);
+                return true;
+            }
+            settingY += 35;
+            
+             
+            if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+                setBlockhit(!blockhit);
+                return true;
+            }
+            settingY += 35;
+        }
+        
+         
+        if (mode.equals("1.9")) {
+            if (helper.isSliderHovered(mouseX, mouseY, startX + 220, settingY, 130)) {
+                double newValue = helper.calculateSliderValue(mouseX, startX + 220, 130, 0.0, 100.0);
+                setCooldownProgress(newValue);
+                return true;
+            }
+            settingY += 35;
+        }
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 7.0);
+            setHitRange(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setCritTiming(!critTiming);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setRequireWeapon(!requireWeapon);
+            return true;
+        }
+        
+        return false;
     }
 }

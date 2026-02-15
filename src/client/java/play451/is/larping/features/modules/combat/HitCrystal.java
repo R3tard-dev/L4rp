@@ -2,6 +2,7 @@ package play451.is.larping.features.modules.combat;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -17,12 +18,14 @@ import net.minecraft.util.math.Vec3d;
 import play451.is.larping.config.Config;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleCategory;
+import play451.is.larping.features.modules.ModuleSettingsRenderer;
+import play451.is.larping.features.modules.SettingsHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class HitCrystal extends Module {
+public class HitCrystal extends Module implements ModuleSettingsRenderer {
     
      
     private double delay = 30.0;  
@@ -357,5 +360,101 @@ public class HitCrystal extends Module {
     
     public boolean isAimAssist() {
         return aimAssist;
+    }
+    
+     
+    @Override
+    public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        helper.renderLabel(context, "Delay:", String.format("%.0f ms", delay), startX, settingY);
+        helper.renderSlider(context, startX + 200, settingY, 150, delay, 0.0, 200.0);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Mode:", null, startX, settingY);
+        helper.renderModeSelector(context, mouseX, mouseY, startX + 120, settingY, 
+            new String[]{"None", "Single Tap", "Double Tap"}, mode, 75);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Place Mode:", null, startX, settingY);
+        helper.renderModeSelector(context, mouseX, mouseY, startX + 150, settingY, 
+            new String[]{"Silent", "Manual"}, placeMode, 60);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Perfect Timing:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, perfectTiming);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Pause On Kill:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, pauseOnKill);
+        settingY += 35;
+        
+         
+        helper.renderLabel(context, "Aim Assist:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, aimAssist);
+        
+        return settingY + 25;
+    }
+    
+    @Override
+    public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
+            double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 0.0, 200.0);
+            setDelay(newValue);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        int modeX = startX + 120;
+        for (String modeOption : new String[]{"None", "Single Tap", "Double Tap"}) {
+            if (helper.isModeButtonHovered(mouseX, mouseY, modeX, settingY, 75)) {
+                setMode(modeOption);
+                return true;
+            }
+            modeX += 80;
+        }
+        settingY += 35;
+        
+         
+        int placeModeX = startX + 150;
+        for (String placeModeOption : new String[]{"Silent", "Manual"}) {
+            if (helper.isModeButtonHovered(mouseX, mouseY, placeModeX, settingY, 60)) {
+                setPlaceMode(placeModeOption);
+                return true;
+            }
+            placeModeX += 65;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setPerfectTiming(!perfectTiming);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setPauseOnKill(!pauseOnKill);
+            return true;
+        }
+        settingY += 35;
+        
+         
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setAimAssist(!aimAssist);
+            return true;
+        }
+        
+        return false;
     }
 }

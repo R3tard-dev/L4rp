@@ -1,16 +1,19 @@
 package play451.is.larping.features.modules.render;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import play451.is.larping.config.Config;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleCategory;
+import play451.is.larping.features.modules.ModuleSettingsRenderer;
+import play451.is.larping.features.modules.SettingsHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Fullbright extends Module {
+public class Fullbright extends Module implements ModuleSettingsRenderer {
     
      
     private String mode = "Gamma";  
@@ -65,7 +68,16 @@ public class Fullbright extends Module {
         
          
         if (mode.equals("Gamma") || mode.equals("Both")) {
-            mc.options.getGamma().setValue(gammaLevel);
+             
+            double currentGamma = mc.options.getGamma().getValue();
+            if (Math.abs(currentGamma - gammaLevel) > 0.01) {
+                mc.options.getGamma().setValue(gammaLevel);
+            }
+        } else {
+             
+            if (Math.abs(mc.options.getGamma().getValue() - previousGamma) > 0.01) {
+                mc.options.getGamma().setValue(previousGamma);
+            }
         }
         
          
@@ -84,6 +96,15 @@ public class Fullbright extends Module {
                         false,  
                         false   
                     ));
+                }
+            }
+        } else {
+             
+            if (mc.player != null && mc.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
+                StatusEffectInstance effect = mc.player.getStatusEffect(StatusEffects.NIGHT_VISION);
+                 
+                if (effect != null && effect.getDuration() == Integer.MAX_VALUE) {
+                    mc.player.removeStatusEffect(StatusEffects.NIGHT_VISION);
                 }
             }
         }
@@ -148,5 +169,57 @@ public class Fullbright extends Module {
     
     public double getGammaLevel() {
         return gammaLevel;
+    }
+    
+     
+    @Override
+    public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        helper.renderLabel(context, "Mode:", null, startX, settingY);
+        helper.renderModeSelector(context, mouseX, mouseY, startX + 120, settingY, 
+            new String[]{"Gamma", "Night Vision", "Both"}, mode, 85);
+        settingY += 40;
+        
+         
+        if (mode.equals("Gamma") || mode.equals("Both")) {
+            helper.renderLabel(context, "Gamma Level:", String.format("%.1f", gammaLevel), startX, settingY);
+            helper.renderSlider(context, startX + 180, settingY, 170, gammaLevel, 1.0, 100.0);
+            settingY += 35;
+        }
+        
+         
+        helper.renderInfo(context, "Tip: Gamma works everywhere, Night Vision", startX, settingY + 10);
+        helper.renderInfo(context, "is more natural looking.", startX, settingY + 20);
+        
+        return settingY + 30;
+    }
+    
+    @Override
+    public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
+        int settingY = startY;
+        
+         
+        int modeX = startX + 120;
+        for (String modeOption : new String[]{"Gamma", "Night Vision", "Both"}) {
+            if (helper.isModeButtonHovered(mouseX, mouseY, modeX, settingY, 85)) {
+                setMode(modeOption);
+                return true;
+            }
+            modeX += 90;
+        }
+        settingY += 40;
+        
+         
+        if (mode.equals("Gamma") || mode.equals("Both")) {
+            if (helper.isSliderHovered(mouseX, mouseY, startX + 180, settingY, 170)) {
+                double newValue = helper.calculateSliderValue(mouseX, startX + 180, 170, 1.0, 100.0);
+                setGammaLevel(newValue);
+                return true;
+            }
+        }
+        
+        return false;
     }
 }
