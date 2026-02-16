@@ -34,7 +34,7 @@ public class ModuleSettingsScreen extends Screen {
         super(Text.literal("Module Settings"));
         this.parent = parent;
         this.module = module;
-        this.settingsHelper = new SettingsHelper(null);  
+        this.settingsHelper = new SettingsHelper(null);
     }
     
     @Override
@@ -60,10 +60,13 @@ public class ModuleSettingsScreen extends Screen {
         context.fillGradient(0, 0, this.width, this.height, 0xB0000000, 0xB0000000);
         
          
-        drawGlow(context, x, y, width, height);
+        context.fill(x - 1, y - 1, x + width + 1, y, 0x40000000);
+        context.fill(x - 1, y + height, x + width + 1, y + height + 1, 0x40000000);
+        context.fill(x - 1, y - 1, x, y + height + 1, 0x40000000);
+        context.fill(x + width, y - 1, x + width + 1, y + height + 1, 0x40000000);
         
          
-        settingsHelper.drawRoundedRect(context, x, y, width, height, BG_DARK);
+        context.fill(x, y, x + width, y + height, BG_DARK);
         
          
         context.fill(x, y, x + width, y + 30, 0xFF000000);
@@ -102,18 +105,9 @@ public class ModuleSettingsScreen extends Screen {
         boolean backHovered = mouseX >= backX && mouseX <= backX + backWidth &&
                              mouseY >= backY && mouseY <= backY + backHeight;
         
-        settingsHelper.drawRoundedRect(context, backX, backY, backWidth, backHeight, 
+        context.fill(backX, backY, backX + backWidth, backY + backHeight, 
             backHovered ? BUTTON_HOVER : BUTTON_BG);
         context.drawText(this.textRenderer, "Back", backX + 18, backY + 8, TEXT_PRIMARY, false);
-    }
-    
-    private void drawGlow(DrawContext context, int x, int y, int width, int height) {
-         
-        int glowColor = 0x20000000;
-        context.fill(x - 1, y - 1, x + width + 1, y, glowColor);
-        context.fill(x - 1, y + height, x + width + 1, y + height + 1, glowColor);
-        context.fill(x - 1, y - 1, x, y + height + 1, glowColor);
-        context.fill(x + width, y - 1, x + width + 1, y + height + 1, glowColor);
     }
     
     @Override

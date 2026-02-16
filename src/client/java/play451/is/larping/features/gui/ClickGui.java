@@ -19,11 +19,11 @@ public class ClickGui extends Screen {
      
     private int x;
     private int y;
-    private int width;
-    private int height;
+    private int width = 480;  
+    private int height = 360;  
     
      
-    private static final int SIDEBAR_WIDTH = 140;
+    private static final int SIDEBAR_WIDTH = 100;  
     private ModuleCategory selectedCategory = ModuleCategory.COMBAT;
     
      
@@ -59,19 +59,11 @@ public class ClickGui extends Screen {
         Config config = Config.getInstance();
         this.x = config.getGuiX();
         this.y = config.getGuiY();
-        this.width = config.getGuiWidth();
-        this.height = config.getGuiHeight();
+         
     }
     
     private void loadCustomFont() {
-         
-         
         this.customFont = MinecraftClient.getInstance().textRenderer;
-        
-         
-         
-         
-         
     }
 
     public static ClickGui getInstance() {
@@ -87,107 +79,83 @@ public class ClickGui extends Screen {
         context.fillGradient(0, 0, this.width, this.height, 0xC0000000, 0xE0000000);
         
          
-        drawModernShadow(context, x, y, width, height);
+        context.fill(x - 1, y - 1, x + width + 1, y, 0x40000000);
+        context.fill(x - 1, y + height, x + width + 1, y + height + 1, 0x40000000);
+        context.fill(x - 1, y - 1, x, y + height + 1, 0x40000000);
+        context.fill(x + width, y - 1, x + width + 1, y + height + 1, 0x40000000);
         
          
-        drawRoundedRect(context, x, y, width, height, BG_DARK);
+        context.fill(x, y, x + width, y + height, BG_DARK);
         
          
-        drawRoundedRect(context, x, y, SIDEBAR_WIDTH, height, SIDEBAR_BG);
-        drawGradientOverlay(context, x, y, SIDEBAR_WIDTH, height);
+        context.fill(x, y, x + SIDEBAR_WIDTH, y + height, SIDEBAR_BG);
         
          
-        context.fillGradient(x + SIDEBAR_WIDTH, y + 40, x + SIDEBAR_WIDTH + 1, y + height, 
-            BORDER_SUBTLE, 0x00151515);
+        context.fill(x + SIDEBAR_WIDTH, y, x + SIDEBAR_WIDTH + 1, y + height, BORDER_SUBTLE);
+        
+         
+        context.fill(x, y, x + width, y + 30, BG_DARKER);
         
          
         String title = "L4RP";
         int titleWidth = this.customFont.getWidth(title);
         context.drawTextWithShadow(this.customFont, title, 
-            x + SIDEBAR_WIDTH / 2 - titleWidth / 2, y + 15, ACCENT);
+            x + SIDEBAR_WIDTH / 2 - titleWidth / 2, y + 10, ACCENT);
         
          
         renderSidebar(context, mouseX, mouseY);
-        
-         
         renderContentArea(context, mouseX, mouseY);
         
          
         context.drawText(this.customFont, "RSHIFT to close", 
-            x + SIDEBAR_WIDTH + 15, y + height - 20, TEXT_DIM, false);
+            x + SIDEBAR_WIDTH + 10, y + height - 15, TEXT_DIM, false);
         context.drawText(this.customFont, "v1.0", 
-            x + width - 35, y + height - 20, TEXT_DIM, false);
-    }
-    
-    private void drawModernShadow(DrawContext context, int x, int y, int width, int height) {
-         
-        int shadowSize = 12;  
-        
-        for (int i = 0; i < shadowSize; i++) {
-             
-            float progress = (float) (shadowSize - i) / shadowSize;
-            int alpha = (int) (Math.pow(progress, 2) * 40);  
-            int shadowColor = (alpha << 24);
-            
-             
-             
-            context.fillGradient(x - i, y - i, x + width + i, y - i + 1, shadowColor, shadowColor);
-             
-            context.fillGradient(x - i, y + height + i, x + width + i, y + height + i + 1, shadowColor, shadowColor);
-             
-            context.fillGradient(x - i, y - i, x - i + 1, y + height + i, shadowColor, shadowColor);
-             
-            context.fillGradient(x + width + i, y - i, x + width + i + 1, y + height + i, shadowColor, shadowColor);
-        }
-    }
-    
-    private void drawGradientOverlay(DrawContext context, int x, int y, int width, int height) {
-         
-        context.fillGradient(x, y, x + width, y + height / 3, 0x10FFFFFF, 0x00FFFFFF);
+            x + width - 30, y + height - 15, TEXT_DIM, false);
     }
     
     private void renderSidebar(DrawContext context, int mouseX, int mouseY) {
-        int categoryY = y + 50;
+        int categoryY = y + 40;
         
         for (ModuleCategory category : ModuleCategory.values()) {
             List<Module> modules = ModuleManager.getInstance().getModulesByCategory(category);
-            if (modules.isEmpty()) continue;  
+            if (modules.isEmpty()) continue;
             
             boolean isSelected = category == selectedCategory;
-            boolean isHovered = mouseX >= x + 5 && mouseX <= x + SIDEBAR_WIDTH - 5 && 
-                               mouseY >= categoryY && mouseY <= categoryY + 32;
+            boolean isHovered = mouseX >= x + 2 && mouseX <= x + SIDEBAR_WIDTH - 2 && 
+                               mouseY >= categoryY && mouseY <= categoryY + 24;  
             
              
             if (isSelected) {
-                drawRoundedRect(context, x + 8, categoryY, SIDEBAR_WIDTH - 16, 32, ACCENT_DARK);
+                context.fill(x + 4, categoryY, x + SIDEBAR_WIDTH - 4, categoryY + 24, ACCENT_DARK);
                  
-                context.fill(x + 5, categoryY, x + 8, categoryY + 32, ACCENT_GLOW);
+                context.fill(x + 2, categoryY, x + 4, categoryY + 24, ACCENT);
             } else if (isHovered) {
-                drawRoundedRect(context, x + 8, categoryY, SIDEBAR_WIDTH - 16, 32, MODULE_HOVER);
+                context.fill(x + 4, categoryY, x + SIDEBAR_WIDTH - 4, categoryY + 24, MODULE_HOVER);
             }
             
              
             int textColor = isSelected ? TEXT_PRIMARY : TEXT_SECONDARY;
             context.drawText(this.customFont, category.getName(), 
-                x + 15, categoryY + 11, textColor, false);
+                x + 8, categoryY + 8, textColor, false);  
             
              
             String count = String.valueOf(modules.size());
-            int badgeX = x + SIDEBAR_WIDTH - 25;
-            int badgeY = categoryY + 10;
+            int badgeX = x + SIDEBAR_WIDTH - 18;  
+            int badgeY = categoryY + 6;
             int badgeWidth = this.customFont.getWidth(count) + 6;
             
-            drawRoundedRect(context, badgeX, badgeY, badgeWidth, 16, isSelected ? ACCENT_GLOW : 0xFF0F0F0F);
-            context.drawText(this.customFont, count, badgeX + 3, badgeY + 4, TEXT_DIM, false);
+            context.fill(badgeX, badgeY, badgeX + badgeWidth, badgeY + 12, 
+                isSelected ? ACCENT_GLOW : 0xFF0F0F0F);
+            context.drawText(this.customFont, count, badgeX + 3, badgeY + 2, TEXT_DIM, false);
             
-            categoryY += 36;
+            categoryY += 28;  
         }
     }
     
     private void renderContentArea(DrawContext context, int mouseX, int mouseY) {
-        int contentX = x + SIDEBAR_WIDTH + 20;
-        int contentY = y + 50;
-        int contentWidth = width - SIDEBAR_WIDTH - 35;
+        int contentX = x + SIDEBAR_WIDTH + 15;
+        int contentY = y + 45;
+        int contentWidth = width - SIDEBAR_WIDTH - 25;
         
         List<Module> modules = ModuleManager.getInstance().getModulesByCategory(selectedCategory);
         
@@ -195,7 +163,7 @@ public class ClickGui extends Screen {
         context.drawTextWithShadow(this.customFont, selectedCategory.getName(), 
             contentX, contentY - 5, TEXT_PRIMARY);
         
-        contentY += 20;
+        contentY += 18;
         
          
         if (modules.isEmpty()) {
@@ -207,9 +175,9 @@ public class ClickGui extends Screen {
         }
         
          
-        int moduleWidth = 150;
-        int moduleHeight = 60;
-        int moduleSpacing = 10;
+        int moduleWidth = 115;  
+        int moduleHeight = 48;  
+        int moduleSpacing = 6;  
         int modulesPerRow = Math.max(1, contentWidth / (moduleWidth + moduleSpacing));
         
         for (int i = 0; i < modules.size(); i++) {
@@ -221,7 +189,7 @@ public class ClickGui extends Screen {
             int moduleY = contentY + row * (moduleHeight + moduleSpacing);
             
              
-            if (moduleY + moduleHeight < y + 50 || moduleY > y + height - 30) {
+            if (moduleY + moduleHeight < y + 45 || moduleY > y + height - 20) {
                 continue;
             }
             
@@ -230,179 +198,80 @@ public class ClickGui extends Screen {
             
              
             int bgColor = isHovered ? MODULE_HOVER : MODULE_BG;
-            drawRoundedRect(context, moduleX, moduleY, moduleWidth, moduleHeight, bgColor);
-            
-             
-            if (!module.isEnabled()) {
-                drawInnerShadow(context, moduleX, moduleY, moduleWidth, moduleHeight);
-            }
+            context.fill(moduleX, moduleY, moduleX + moduleWidth, moduleY + moduleHeight, bgColor);
             
              
             if (module.isEnabled()) {
-                context.fill(moduleX, moduleY + 5, moduleX + 2, moduleY + moduleHeight - 5, ACCENT);
+                context.fill(moduleX, moduleY + 4, moduleX + 2, moduleY + moduleHeight - 4, ACCENT);
                  
-                drawRoundedRect(context, moduleX, moduleY, moduleWidth, moduleHeight, 
+                context.fill(moduleX, moduleY, moduleX + moduleWidth, moduleY + moduleHeight, 
                     isHovered ? 0x20FFFFFF : 0x10FFFFFF);
             } else if (isHovered) {
-                context.fill(moduleX, moduleY + 5, moduleX + 2, moduleY + moduleHeight - 5, BORDER_SUBTLE);
+                context.fill(moduleX, moduleY + 4, moduleX + 2, moduleY + moduleHeight - 4, BORDER_SUBTLE);
             }
             
              
             context.drawText(this.customFont, module.getName(), 
-                moduleX + 10, moduleY + 8, TEXT_PRIMARY, false);
+                moduleX + 8, moduleY + 6, TEXT_PRIMARY, false);
             
              
-            int settingsX = moduleX + moduleWidth - 18;
-            int settingsY = moduleY + 6;
-            int settingsSize = 12;
+            int settingsX = moduleX + moduleWidth - 15;
+            int settingsY = moduleY + 5;
+            int settingsSize = 10;
             boolean settingsHovered = mouseX >= settingsX && mouseX <= settingsX + settingsSize &&
                                      mouseY >= settingsY && mouseY <= settingsY + settingsSize;
             
              
             int settingsBg = settingsHovered ? ACCENT : 0xFF1F1F1F;
-            drawRoundedRect(context, settingsX, settingsY, settingsSize, settingsSize, settingsBg);
+            context.fill(settingsX, settingsY, settingsX + settingsSize, settingsY + settingsSize, settingsBg);
             
              
-            context.fill(settingsX + 5, settingsY + 3, settingsX + 7, settingsY + 5, TEXT_PRIMARY);
-            context.fill(settingsX + 3, settingsY + 5, settingsX + 5, settingsY + 7, TEXT_PRIMARY);
-            context.fill(settingsX + 7, settingsY + 5, settingsX + 9, settingsY + 7, TEXT_PRIMARY);
-            context.fill(settingsX + 5, settingsY + 7, settingsX + 7, settingsY + 9, TEXT_PRIMARY);
+            context.fill(settingsX + 4, settingsY + 2, settingsX + 6, settingsY + 4, TEXT_PRIMARY);
+            context.fill(settingsX + 2, settingsY + 4, settingsX + 4, settingsY + 6, TEXT_PRIMARY);
+            context.fill(settingsX + 6, settingsY + 4, settingsX + 8, settingsY + 6, TEXT_PRIMARY);
+            context.fill(settingsX + 4, settingsY + 6, settingsX + 6, settingsY + 8, TEXT_PRIMARY);
             
              
             String desc = module.getDescription();
-            if (desc.length() > 22) {
-                desc = desc.substring(0, 19) + "...";
+            if (desc.length() > 19) {
+                desc = desc.substring(0, 16) + "...";
             }
             context.drawText(this.customFont, desc, 
-                moduleX + 10, moduleY + 22, TEXT_DIM, false);
+                moduleX + 8, moduleY + 18, TEXT_DIM, false);
             
              
-            int toggleX = moduleX + moduleWidth - 48;
-            int toggleY = moduleY + moduleHeight - 24;
+            int toggleX = moduleX + moduleWidth - 38;
+            int toggleY = moduleY + moduleHeight - 18;
             renderToggle(context, toggleX, toggleY, module.isEnabled());
             
              
             String status = module.isEnabled() ? "ON" : "OFF";
             int statusColor = module.isEnabled() ? ENABLED_GLOW : TEXT_DIM;
             context.drawText(this.customFont, status, 
-                moduleX + 10, moduleY + moduleHeight - 18, statusColor, false);
+                moduleX + 8, moduleY + moduleHeight - 14, statusColor, false);
         }
     }
     
     private void renderToggle(DrawContext context, int x, int y, boolean enabled) {
-        int width = 42;
-        int height = 20;
+        int width = 36;  
+        int height = 16;  
         
          
         int bgColor = enabled ? ENABLED_GLOW : 0xFF1A1A1A;
-        drawRoundedRect(context, x, y, width, height, bgColor);
+        context.fill(x, y, x + width, y + height, bgColor);
         
          
-        int circleSize = 16;
+        int circleSize = 12;  
         int circleX = enabled ? x + width - circleSize - 2 : x + 2;
         int circleY = y + 2;
-        drawRoundedRect(context, circleX, circleY, circleSize, circleSize, TEXT_PRIMARY);
-    }
-    
-    private void drawRoundedRect(DrawContext context, int x, int y, int width, int height, int color) {
-        int radius = 6;  
-        
-         
-        context.fill(x + radius, y, x + width - radius, y + height, color);
-        context.fill(x, y + radius, x + width, y + height - radius, color);
-        
-         
-        drawSmoothCorner(context, x + radius, y + radius, radius, color, 0);  
-        drawSmoothCorner(context, x + width - radius, y + radius, radius, color, 1);  
-        drawSmoothCorner(context, x + radius, y + height - radius, radius, color, 2);  
-        drawSmoothCorner(context, x + width - radius, y + height - radius, radius, color, 3);  
-    }
-    
-    private void drawSmoothCorner(DrawContext context, int centerX, int centerY, int radius, int color, int corner) {
-         
-        int alpha = (color >> 24) & 0xFF;
-        int rgb = color & 0x00FFFFFF;
-        
-         
-        for (int i = -radius; i <= radius; i++) {
-            for (int j = -radius; j <= radius; j++) {
-                double distance = Math.sqrt(i * i + j * j);
-                
-                if (distance <= radius) {
-                     
-                    double edgeDistance = radius - distance;
-                    int pixelAlpha = alpha;
-                    
-                    if (edgeDistance < 1.0) {
-                         
-                        pixelAlpha = (int) (alpha * edgeDistance);
-                    }
-                    
-                    int smoothColor = (pixelAlpha << 24) | rgb;
-                    
-                    int x = centerX;
-                    int y = centerY;
-                    
-                     
-                    boolean draw = false;
-                    switch (corner) {
-                        case 0:  
-                            if (i <= 0 && j <= 0) {
-                                x += i;
-                                y += j;
-                                draw = true;
-                            }
-                            break;
-                        case 1:  
-                            if (i >= 0 && j <= 0) {
-                                x += i;
-                                y += j;
-                                draw = true;
-                            }
-                            break;
-                        case 2:  
-                            if (i <= 0 && j >= 0) {
-                                x += i;
-                                y += j;
-                                draw = true;
-                            }
-                            break;
-                        case 3:  
-                            if (i >= 0 && j >= 0) {
-                                x += i;
-                                y += j;
-                                draw = true;
-                            }
-                            break;
-                    }
-                    
-                    if (draw) {
-                        context.fill(x, y, x + 1, y + 1, smoothColor);
-                    }
-                }
-            }
-        }
-    }
-    
-    private void drawInnerShadow(DrawContext context, int x, int y, int width, int height) {
-         
-        int shadowDepth = 2;
-        for (int i = 0; i < shadowDepth; i++) {
-            int alpha = (shadowDepth - i) * 8;
-            int shadowColor = (alpha << 24);
-            
-             
-            context.fillGradient(x + 1, y + i, x + width - 1, y + i + 1, shadowColor, shadowColor);
-             
-            context.fillGradient(x + i, y + 1, x + i + 1, y + height - 1, shadowColor, shadowColor);
-        }
+        context.fill(circleX, circleY, circleX + circleSize, circleY + circleSize, TEXT_PRIMARY);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
              
-            if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 40) {
+            if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 30) {
                 dragging = true;
                 dragOffsetX = (int) (mouseX - x);
                 dragOffsetY = (int) (mouseY - y);
@@ -410,27 +279,27 @@ public class ClickGui extends Screen {
             }
             
              
-            int categoryY = y + 50;
+            int categoryY = y + 40;
             for (ModuleCategory category : ModuleCategory.values()) {
                 List<Module> modules = ModuleManager.getInstance().getModulesByCategory(category);
                 if (modules.isEmpty()) continue;
                 
-                if (mouseX >= x + 5 && mouseX <= x + SIDEBAR_WIDTH - 5 && 
-                    mouseY >= categoryY && mouseY <= categoryY + 32) {
+                if (mouseX >= x + 2 && mouseX <= x + SIDEBAR_WIDTH - 2 && 
+                    mouseY >= categoryY && mouseY <= categoryY + 24) {  
                     selectedCategory = category;
                     scrollOffset = 0;
                     return true;
                 }
-                categoryY += 36;
+                categoryY += 28;  
             }
             
              
-            int contentX = x + SIDEBAR_WIDTH + 20;
-            int contentY = y + 70;
-            int moduleWidth = 150;
-            int moduleHeight = 60;
-            int moduleSpacing = 10;
-            int contentWidth = width - SIDEBAR_WIDTH - 35;
+            int contentX = x + SIDEBAR_WIDTH + 15;
+            int contentY = y + 63;
+            int moduleWidth = 115;  
+            int moduleHeight = 48;  
+            int moduleSpacing = 6;  
+            int contentWidth = width - SIDEBAR_WIDTH - 25;
             int modulesPerRow = Math.max(1, contentWidth / (moduleWidth + moduleSpacing));
             
             List<Module> modules = ModuleManager.getInstance().getModulesByCategory(selectedCategory);
@@ -443,13 +312,12 @@ public class ClickGui extends Screen {
                 int moduleY = contentY + row * (moduleHeight + moduleSpacing);
                 
                  
-                int settingsX = moduleX + moduleWidth - 18;
-                int settingsY = moduleY + 6;
-                int settingsSize = 12;
+                int settingsX = moduleX + moduleWidth - 15;
+                int settingsY = moduleY + 5;
+                int settingsSize = 10;
                 
                 if (mouseX >= settingsX && mouseX <= settingsX + settingsSize &&
                     mouseY >= settingsY && mouseY <= settingsY + settingsSize) {
-                     
                     openModuleSettings(module);
                     return true;
                 }

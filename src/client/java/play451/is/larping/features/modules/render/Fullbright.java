@@ -46,12 +46,22 @@ public class Fullbright extends Module implements ModuleSettingsRenderer {
     public void onDisable() {
         if (mc.options != null) {
              
-            mc.options.getGamma().setValue(previousGamma);
+            try {
+                ((play451.is.larping.ducks.ISimpleOption) (Object) mc.options.getGamma()).larping$setValue(previousGamma);
+            } catch (Exception e) {
+                mc.options.getGamma().setValue(previousGamma);
+            }
         }
         
          
         if (mc.player != null && (mode.equals("Night Vision") || mode.equals("Both"))) {
-            mc.player.removeStatusEffect(StatusEffects.NIGHT_VISION);
+            if (mc.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
+                StatusEffectInstance effect = mc.player.getStatusEffect(StatusEffects.NIGHT_VISION);
+                 
+                if (effect != null && effect.getDuration() == StatusEffectInstance.INFINITE) {
+                    mc.player.removeStatusEffect(StatusEffects.NIGHT_VISION);
+                }
+            }
         }
     }
     
@@ -69,13 +79,19 @@ public class Fullbright extends Module implements ModuleSettingsRenderer {
          
         if (mode.equals("Gamma") || mode.equals("Both")) {
              
-            double currentGamma = mc.options.getGamma().getValue();
-            if (Math.abs(currentGamma - gammaLevel) > 0.01) {
+             
+            try {
+                 
+                ((play451.is.larping.ducks.ISimpleOption) (Object) mc.options.getGamma()).larping$setValue(gammaLevel);
+            } catch (Exception e) {
+                 
                 mc.options.getGamma().setValue(gammaLevel);
             }
         } else {
              
-            if (Math.abs(mc.options.getGamma().getValue() - previousGamma) > 0.01) {
+            try {
+                ((play451.is.larping.ducks.ISimpleOption) (Object) mc.options.getGamma()).larping$setValue(previousGamma);
+            } catch (Exception e) {
                 mc.options.getGamma().setValue(previousGamma);
             }
         }
@@ -90,7 +106,7 @@ public class Fullbright extends Module implements ModuleSettingsRenderer {
                 if (existingEffect == null || existingEffect.getDuration() < 400) {
                     mc.player.addStatusEffect(new StatusEffectInstance(
                         StatusEffects.NIGHT_VISION,
-                        Integer.MAX_VALUE,  
+                        StatusEffectInstance.INFINITE,  
                         0,  
                         false,  
                         false,  
@@ -103,7 +119,7 @@ public class Fullbright extends Module implements ModuleSettingsRenderer {
             if (mc.player != null && mc.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
                 StatusEffectInstance effect = mc.player.getStatusEffect(StatusEffects.NIGHT_VISION);
                  
-                if (effect != null && effect.getDuration() == Integer.MAX_VALUE) {
+                if (effect != null && effect.getDuration() == StatusEffectInstance.INFINITE) {
                     mc.player.removeStatusEffect(StatusEffects.NIGHT_VISION);
                 }
             }
