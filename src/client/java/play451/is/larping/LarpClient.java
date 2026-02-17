@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import play451.is.larping.features.gui.GuiKeybind;
 import play451.is.larping.features.modules.ModuleManager;
+import play451.is.larping.features.modules.KeybindManager;
 import play451.is.larping.features.modules.combat.*;
 import play451.is.larping.features.modules.movement.*;
 import play451.is.larping.features.modules.render.*;
@@ -36,6 +37,8 @@ public class LarpClient implements ClientModInitializer {
             if (client.player != null && client.world != null) {
                  
                 ModuleManager.getInstance().onTick();
+
+                KeybindManager.getInstance().tick();
             }
         });
     }
