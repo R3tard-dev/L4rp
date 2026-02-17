@@ -31,6 +31,7 @@ public class LarpClient implements ClientModInitializer {
         new AutoWalk();
 
         new Fullbright();
+        new ESP();
         
          
         ClientTickEvents.END_CLIENT_TICK.register(client -> {

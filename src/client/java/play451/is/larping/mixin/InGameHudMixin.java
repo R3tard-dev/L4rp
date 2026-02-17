@@ -2,6 +2,7 @@ package play451.is.larping.mixin;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -12,7 +13,7 @@ import play451.is.larping.features.modules.render.ESP;
 public class InGameHudMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void onRender(DrawContext context, float tickDelta, CallbackInfo ci) {
-        ESP.renderAll(context, tickDelta);
+    private void onRender(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        ESP.renderAll(context, tickCounter.getTickProgress(true));
     }
 }
