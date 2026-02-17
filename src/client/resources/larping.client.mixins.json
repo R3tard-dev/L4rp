@@ -3,7 +3,8 @@
 	"package": "play451.is.larping.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"SimpleOptionMixin"
+		"SimpleOptionMixin",
+		"InGameHudMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

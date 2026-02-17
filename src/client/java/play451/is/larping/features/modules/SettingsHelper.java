@@ -8,19 +8,21 @@ public class SettingsHelper {
     TextRenderer textRenderer;
     
     
-    private static final int ACCENT = 0xFF1E90FF;
-    private static final int TEXT_PRIMARY = 0xFFF0F0F0;
+    private static final int ACCENT        = 0xFF1E90FF;
+    private static final int TEXT_PRIMARY   = 0xFFF0F0F0;
     private static final int TEXT_SECONDARY = 0xFF999999;
-    private static final int TEXT_DIM = 0xFF666666;
-    private static final int BUTTON_BG = 0xFF1A1A1A;
-    private static final int BUTTON_HOVER = 0xFF252525;
-    private static final int ENABLED_GLOW = 0xFF10B981;
-    private static final int BIND_LISTENING = 0xFF8B2222;
-    private static final int BIND_SET = 0xFF1E3A5F;
+    private static final int TEXT_DIM       = 0xFF666666;
+    private static final int BUTTON_BG      = 0xFF0A0A0A;
+    private static final int BUTTON_HOVER   = 0xFF101010;
+    private static final int ENABLED_GLOW   = 0xFF10B981;
+    private static final int BORDER_SUBTLE  = 0xFF151515;
+    private static final int BIND_LISTENING = 0xFF2A0808;
+    private static final int BIND_SET       = 0xFF0D2035;
     
     public SettingsHelper(TextRenderer textRenderer) {
         this.textRenderer = textRenderer;
     }
+    
     
     
     public void renderLabel(DrawContext context, String label, String value, int x, int y) {
@@ -31,86 +33,133 @@ public class SettingsHelper {
     }
     
     
+    
     public void renderSlider(DrawContext context, int x, int y, int width, double value, double min, double max) {
-        drawRoundedRect(context, x, y - 2, width, 4, 0xFF2A2A2A);
+        int trackH = 4;
+        int trackY = y - trackH / 2;
         
-        double percent = (value - min) / (max - min);
+        
+        context.fill(x, trackY, x + width, trackY + trackH, 0xFF1A1A1A);
+        
+        context.fill(x, trackY, x + 1, trackY + trackH, BORDER_SUBTLE);
+        
+        
+        double percent = Math.max(0, Math.min(1, (value - min) / (max - min)));
         int fillWidth = (int) (width * percent);
-        drawRoundedRect(context, x, y - 2, fillWidth, 4, ACCENT);
+        if (fillWidth > 0) {
+            context.fill(x, trackY, x + fillWidth, trackY + trackH, ACCENT);
+        }
         
-        int handleX = x + fillWidth - 4;
-        drawRoundedRect(context, handleX, y - 6, 8, 12, TEXT_PRIMARY);
+        
+        int handleX = x + fillWidth - 2;
+        int handleW = 4;
+        int handleH = 12;
+        int handleY = y - handleH / 2;
+        
+        handleX = Math.max(x, Math.min(x + width - handleW, handleX));
+        context.fill(handleX, handleY, handleX + handleW, handleY + handleH, TEXT_PRIMARY);
+        
+        context.fill(handleX + 1, handleY, handleX + 2, handleY + handleH, ACCENT);
     }
+    
     
     
     public void renderToggle(DrawContext context, int mouseX, int mouseY, int x, int y, boolean enabled) {
-        int width = 42;
-        int height = 20;
+        int w = 36;
+        int h = 16;
         
-        boolean isHovered = mouseX >= x && mouseX <= x + width &&
-                           mouseY >= y && mouseY <= y + height;
+        boolean isHovered = mouseX >= x && mouseX <= x + w &&
+                            mouseY >= y && mouseY <= y + h;
         
-        int bgColor = enabled ? ENABLED_GLOW : BUTTON_BG;
-        if (isHovered && !enabled) bgColor = BUTTON_HOVER;
-        drawRoundedRect(context, x, y, width, height, bgColor);
         
-        int circleX = enabled ? x + width - 18 : x + 2;
-        drawRoundedRect(context, circleX, y + 2, 16, 16, TEXT_PRIMARY);
+        int bgColor = enabled ? ENABLED_GLOW : (isHovered ? BUTTON_HOVER : BUTTON_BG);
+        context.fill(x, y, x + w, y + h, bgColor);
+        
+        
+        context.fill(x, y, x + 2, y + h, enabled ? 0xFF0D8060 : BORDER_SUBTLE);
+        
+        
+        int knobW = 12;
+        int knobH = h - 4;
+        int knobX = enabled ? x + w - knobW - 2 : x + 2;
+        int knobY = y + 2;
+        context.fill(knobX, knobY, knobX + knobW, knobY + knobH, TEXT_PRIMARY);
     }
+    
     
     
     public void renderModeSelector(DrawContext context, int mouseX, int mouseY, int x, int y,
                                    String[] options, String selected, int buttonWidth) {
+        int btnH = 18;
         int currentX = x;
         for (String option : options) {
             boolean isSelected = option.equals(selected);
-            boolean isHovered = mouseX >= currentX && mouseX <= currentX + buttonWidth &&
-                               mouseY >= y - 5 && mouseY <= y + 15;
+            boolean isHovered  = !isSelected &&
+                                  mouseX >= currentX && mouseX <= currentX + buttonWidth &&
+                                  mouseY >= y - 2 && mouseY <= y - 2 + btnH;
+            
             
             int bgColor = isSelected ? ACCENT : (isHovered ? BUTTON_HOVER : BUTTON_BG);
-            drawRoundedRect(context, currentX, y - 5, buttonWidth, 20, bgColor);
+            context.fill(currentX, y - 2, currentX + buttonWidth, y - 2 + btnH, bgColor);
+            
+            
+            if (isSelected) {
+                context.fill(currentX, y - 2 + btnH - 2, currentX + buttonWidth, y - 2 + btnH, 0xFF1060AA);
+            }
+            
             
             int textOffset = (buttonWidth - textRenderer.getWidth(option)) / 2;
-            context.drawText(textRenderer, option, currentX + textOffset, y, TEXT_PRIMARY, false);
+            context.drawText(textRenderer, option, currentX + textOffset, y + 3, TEXT_PRIMARY, false);
             
-            currentX += buttonWidth + 5;
+            
+            currentX += buttonWidth + 3;
         }
     }
+    
     
     
     public void renderBind(DrawContext context, int mouseX, int mouseY, int x, int y,
                            int keyCode, boolean isListening) {
-        int buttonWidth = 100;
-        int buttonHeight = 18;
+        int btnW = 100;
+        int btnH = 18;
         
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth &&
-                           mouseY >= y && mouseY <= y + buttonHeight;
+        boolean isHovered = !isListening && mouseX >= x && mouseX <= x + btnW &&
+                            mouseY >= y && mouseY <= y + btnH;
         
         String label;
         int bgColor;
+        int accentBar;
         
         if (isListening) {
-            bgColor = BIND_LISTENING;
-            label = "[ Press key... ]";
+            bgColor   = BIND_LISTENING;
+            accentBar = 0xFFCC2222;
+            label     = "Press a key...";
         } else if (keyCode != -1) {
-            bgColor = isHovered ? 0xFF254A70 : BIND_SET;
-            label = "[ " + getKeyName(keyCode) + " ]";
+            bgColor   = isHovered ? 0xFF1A3A5A : BIND_SET;
+            accentBar = ACCENT;
+            label     = getKeyName(keyCode);
         } else {
-            bgColor = isHovered ? BUTTON_HOVER : BUTTON_BG;
-            label = "[ None ]";
+            bgColor   = isHovered ? BUTTON_HOVER : BUTTON_BG;
+            accentBar = BORDER_SUBTLE;
+            label     = "None";
         }
         
-        drawRoundedRect(context, x, y, buttonWidth, buttonHeight, bgColor);
         
-        int textWidth = textRenderer.getWidth(label);
-        int textX = x + (buttonWidth - textWidth) / 2;
-        context.drawText(textRenderer, label, textX, y + 5, TEXT_PRIMARY, false);
+        context.fill(x, y, x + btnW, y + btnH, bgColor);
+        
+        context.fill(x, y, x + 2, y + btnH, accentBar);
+        
+        
+        int textW = textRenderer.getWidth(label);
+        context.drawText(textRenderer, label, x + (btnW - textW) / 2, y + 5, TEXT_PRIMARY, false);
     }
+    
     
     
     public void renderInfo(DrawContext context, String text, int x, int y) {
         context.drawText(textRenderer, text, x, y, TEXT_DIM, false);
     }
+    
     
     
     public boolean isSliderHovered(double mouseX, double mouseY, int sliderX, int sliderY, int width) {
@@ -119,13 +168,13 @@ public class SettingsHelper {
     }
     
     public boolean isToggleHovered(double mouseX, double mouseY, int x, int y) {
-        return mouseX >= x && mouseX <= x + 42 &&
-               mouseY >= y && mouseY <= y + 20;
+        return mouseX >= x && mouseX <= x + 36 &&
+               mouseY >= y && mouseY <= y + 16;
     }
     
     public boolean isModeButtonHovered(double mouseX, double mouseY, int x, int y, int width) {
         return mouseX >= x && mouseX <= x + width &&
-               mouseY >= y - 5 && mouseY <= y + 15;
+               mouseY >= y - 2 && mouseY <= y + 16;
     }
     
     public boolean isBindHovered(double mouseX, double mouseY, int x, int y) {
@@ -134,16 +183,18 @@ public class SettingsHelper {
     }
     
     
+    
     public double calculateSliderValue(double mouseX, int sliderX, int width, double min, double max) {
         double percent = Math.max(0, Math.min(1, (mouseX - sliderX) / width));
         return min + (percent * (max - min));
     }
     
     
+    
     public static String getKeyName(int keyCode) {
         return switch (keyCode) {
-            case -1 -> "None";
-            case 32 -> "Space";
+            case -1  -> "None";
+            case 32  -> "Space";
             case 256 -> "Escape";
             case 257 -> "Enter";
             case 258 -> "Tab";
@@ -171,9 +222,9 @@ public class SettingsHelper {
             case 344 -> "RShift";
             case 345 -> "RCtrl";
             case 346 -> "RAlt";
-            default -> {
-                if (keyCode >= 65 && keyCode <= 90) yield String.valueOf((char) keyCode);
-                if (keyCode >= 48 && keyCode <= 57) yield String.valueOf((char) keyCode);
+            default  -> {
+                if (keyCode >= 65 && keyCode <= 90)   yield String.valueOf((char) keyCode);
+                if (keyCode >= 48 && keyCode <= 57)   yield String.valueOf((char) keyCode);
                 if (keyCode >= 320 && keyCode <= 329) yield "Num" + (keyCode - 320);
                 yield "Key" + keyCode;
             }
@@ -181,60 +232,18 @@ public class SettingsHelper {
     }
     
     
+    
+    public int getAccentColor()       { return ACCENT; }
+    public int getTextPrimaryColor()  { return TEXT_PRIMARY; }
+    public int getTextSecondaryColor(){ return TEXT_SECONDARY; }
+    public int getTextDimColor()      { return TEXT_DIM; }
+    public int getButtonBgColor()     { return BUTTON_BG; }
+    public int getButtonHoverColor()  { return BUTTON_HOVER; }
+    public int getEnabledGlowColor()  { return ENABLED_GLOW; }
+    
+    
+    
     public void drawRoundedRect(DrawContext context, int x, int y, int width, int height, int color) {
-        int radius = 6;
-        
-        context.fill(x + radius, y, x + width - radius, y + height, color);
-        context.fill(x, y + radius, x + width, y + height - radius, color);
-        
-        drawSmoothCorner(context, x + radius, y + radius, radius, color, 0);
-        drawSmoothCorner(context, x + width - radius, y + radius, radius, color, 1);
-        drawSmoothCorner(context, x + radius, y + height - radius, radius, color, 2);
-        drawSmoothCorner(context, x + width - radius, y + height - radius, radius, color, 3);
+        context.fill(x, y, x + width, y + height, color);
     }
-    
-    private void drawSmoothCorner(DrawContext context, int centerX, int centerY, int radius, int color, int corner) {
-        int alpha = (color >> 24) & 0xFF;
-        int rgb = color & 0x00FFFFFF;
-        
-        for (int i = -radius; i <= radius; i++) {
-            for (int j = -radius; j <= radius; j++) {
-                double distance = Math.sqrt(i * i + j * j);
-                
-                if (distance <= radius) {
-                    double edgeDistance = radius - distance;
-                    int pixelAlpha = alpha;
-                    
-                    if (edgeDistance < 1.0) {
-                        pixelAlpha = (int) (alpha * edgeDistance);
-                    }
-                    
-                    int smoothColor = (pixelAlpha << 24) | rgb;
-                    int x = centerX;
-                    int y = centerY;
-                    boolean draw = false;
-                    
-                    switch (corner) {
-                        case 0: if (i <= 0 && j <= 0) { x += i; y += j; draw = true; } break;
-                        case 1: if (i >= 0 && j <= 0) { x += i; y += j; draw = true; } break;
-                        case 2: if (i <= 0 && j >= 0) { x += i; y += j; draw = true; } break;
-                        case 3: if (i >= 0 && j >= 0) { x += i; y += j; draw = true; } break;
-                    }
-                    
-                    if (draw) {
-                        context.fill(x, y, x + 1, y + 1, smoothColor);
-                    }
-                }
-            }
-        }
-    }
-    
-    
-    public int getAccentColor() { return ACCENT; }
-    public int getTextPrimaryColor() { return TEXT_PRIMARY; }
-    public int getTextSecondaryColor() { return TEXT_SECONDARY; }
-    public int getTextDimColor() { return TEXT_DIM; }
-    public int getButtonBgColor() { return BUTTON_BG; }
-    public int getButtonHoverColor() { return BUTTON_HOVER; }
-    public int getEnabledGlowColor() { return ENABLED_GLOW; }
 }
