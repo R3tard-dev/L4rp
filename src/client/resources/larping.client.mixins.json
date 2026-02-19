@@ -4,7 +4,10 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"SimpleOptionMixin",
-		"InGameHudMixin"
+		"InGameHudMixin",
+		"AxeSwapMixin",
+		"StunSlamMixin",
+		"PlayerInventoryAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
