@@ -12,30 +12,27 @@ import play451.is.larping.features.modules.ModuleManager;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class ClickGui extends Screen {
     private static ClickGui INSTANCE;
     private TextRenderer customFont;
     
-     
     private int x;
     private int y;
-    private int guiWidth = 480;  
+    private int guiWidth = 500;  
     private int guiHeight = 360;  
     
-     
     private static final int SIDEBAR_WIDTH = 100;  
     private ModuleCategory selectedCategory = ModuleCategory.COMBAT;
     
-     
     private boolean dragging = false;
     private int dragOffsetX = 0;
     private int dragOffsetY = 0;
     
-     
     private int scrollOffset = 0;
     
-     
     private static final int BG_DARK = 0xF0050505;
     private static final int BG_DARKER = 0xF0020202;
     private static final int SIDEBAR_BG = 0xF0080808;
@@ -60,7 +57,6 @@ public class ClickGui extends Screen {
         Config config = Config.getInstance();
         this.x = config.getGuiX();
         this.y = config.getGuiY();
-         
     }
     
     private void loadCustomFont() {
@@ -76,28 +72,18 @@ public class ClickGui extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-         
         context.fillGradient(0, 0, super.width, super.height, 0xC0000000, 0xE0000000);
         
-         
         context.fill(x - 1, y - 1, x + guiWidth + 1, y, 0x40000000);
         context.fill(x - 1, y + guiHeight, x + guiWidth + 1, y + guiHeight + 1, 0x40000000);
         context.fill(x - 1, y - 1, x, y + guiHeight + 1, 0x40000000);
         context.fill(x + guiWidth, y - 1, x + guiWidth + 1, y + guiHeight + 1, 0x40000000);
         
-         
         context.fill(x, y, x + guiWidth, y + guiHeight, BG_DARK);
-        
-         
         context.fill(x, y, x + SIDEBAR_WIDTH, y + guiHeight, SIDEBAR_BG);
-        
-         
         context.fill(x + SIDEBAR_WIDTH, y, x + SIDEBAR_WIDTH + 1, y + guiHeight, BORDER_SUBTLE);
-        
-         
         context.fill(x, y, x + guiWidth, y + 30, BG_DARKER);
         
-         
         String title = "L4rp.dev";
         int titleWidth = this.customFont.getWidth(title);
         int titleX = x + SIDEBAR_WIDTH / 2 - titleWidth / 2;
@@ -105,15 +91,11 @@ public class ClickGui extends Screen {
 
         renderAnimatedGradientTitle(context, title, titleX, titleY);
         
-         
         renderSidebar(context, mouseX, mouseY);
         renderContentArea(context, mouseX, mouseY);
         
-         
-        context.drawText(this.customFont, "RSHIFT to close", 
-            x + SIDEBAR_WIDTH + 10, y + guiHeight - 15, TEXT_DIM, false);
-        context.drawText(this.customFont, "v1.0.0", 
-            x + guiWidth - 30, y + guiHeight - 15, TEXT_DIM, false);
+        context.drawText(this.customFont, "RSHIFT to close", x + SIDEBAR_WIDTH + 10, y + guiHeight - 15, TEXT_DIM, false);
+        context.drawText(this.customFont, "v1.0.0", x + guiWidth - 30, y + guiHeight - 15, TEXT_DIM, false);
     }
     
     private void renderSidebar(DrawContext context, int mouseX, int mouseY) {
@@ -127,28 +109,22 @@ public class ClickGui extends Screen {
             boolean isHovered = mouseX >= x + 2 && mouseX <= x + SIDEBAR_WIDTH - 2 && 
                                mouseY >= categoryY && mouseY <= categoryY + 24;  
             
-             
             if (isSelected) {
                 context.fill(x + 4, categoryY, x + SIDEBAR_WIDTH - 4, categoryY + 24, ACCENT_DARK);
-                 
                 context.fill(x + 2, categoryY, x + 4, categoryY + 24, ACCENT);
             } else if (isHovered) {
                 context.fill(x + 4, categoryY, x + SIDEBAR_WIDTH - 4, categoryY + 24, MODULE_HOVER);
             }
             
-             
             int textColor = isSelected ? TEXT_PRIMARY : TEXT_SECONDARY;
-            context.drawText(this.customFont, category.getName(), 
-                x + 8, categoryY + 8, textColor, false);  
+            context.drawText(this.customFont, category.getName(), x + 8, categoryY + 8, textColor, false);  
             
-             
             String count = String.valueOf(modules.size());
             int badgeX = x + SIDEBAR_WIDTH - 18;  
             int badgeY = categoryY + 6;
             int badgeWidth = this.customFont.getWidth(count) + 6;
             
-            context.fill(badgeX, badgeY, badgeX + badgeWidth, badgeY + 12, 
-                isSelected ? ACCENT_GLOW : 0xFF0F0F0F);
+            context.fill(badgeX, badgeY, badgeX + badgeWidth, badgeY + 12, isSelected ? ACCENT_GLOW : 0xFF0F0F0F);
             context.drawText(this.customFont, count, badgeX + 3, badgeY + 2, TEXT_DIM, false);
             
             categoryY += 28;  
@@ -156,12 +132,9 @@ public class ClickGui extends Screen {
     }
 
     private void renderAnimatedGradientTitle(DrawContext context, String text, int startX, int y) {
-         
         final int base = ACCENT;           
         final int highlight = 0xFFFFFFFF;  
-
         final float periodMs = 1800f;
-
         final float bandWidth = 0.22f;
 
         long now = System.currentTimeMillis();
@@ -170,26 +143,18 @@ public class ClickGui extends Screen {
         int totalW = this.customFont.getWidth(text);
         if (totalW <= 0) return;
 
-        int x = startX;
+        int xPos = startX;
 
         for (int i = 0; i < text.length(); i++) {
             String ch = text.substring(i, i + 1);
             int chW = this.customFont.getWidth(ch);
-
-             
-            float u = (x - startX + chW * 0.5f) / (float) totalW;
-
-             
+            float u = (xPos - startX + chW * 0.5f) / (float) totalW;
             float d = wrappedDistance(u, t);  
-
-             
             float intensity = 1f - smoothstep(0f, bandWidth, d);
-
-             
             int color = lerpColor(base, highlight, intensity);
 
-            context.drawTextWithShadow(this.customFont, ch, x, y, color);
-            x += chW;
+            context.drawTextWithShadow(this.customFont, ch, xPos, y, color);
+            xPos += chW;
         }
     }
 
@@ -210,15 +175,12 @@ public class ClickGui extends Screen {
 
     private static int lerpColor(int c1, int c2, float t) {
         t = clamp(t, 0f, 1f);
-
         int a1 = (c1 >>> 24) & 0xFF, r1 = (c1 >>> 16) & 0xFF, g1 = (c1 >>> 8) & 0xFF, b1 = c1 & 0xFF;
         int a2 = (c2 >>> 24) & 0xFF, r2 = (c2 >>> 16) & 0xFF, g2 = (c2 >>> 8) & 0xFF, b2 = c2 & 0xFF;
-
         int a = (int) (a1 + (a2 - a1) * t);
         int r = (int) (r1 + (r2 - r1) * t);
         int g = (int) (g1 + (g2 - g1) * t);
         int b = (int) (b1 + (b2 - b1) * t);
-
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
     
@@ -227,10 +189,12 @@ public class ClickGui extends Screen {
         int contentY = y + 45;
         int contentWidth = guiWidth - SIDEBAR_WIDTH - 25;
 
-        List<Module> modules = ModuleManager.getInstance().getModulesByCategory(selectedCategory);
+        List<Module> modules = ModuleManager.getInstance().getModulesByCategory(selectedCategory)
+                .stream()
+                .sorted(Comparator.comparing(Module::getName, String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
 
-        context.drawTextWithShadow(this.customFont, selectedCategory.getName(),
-            contentX, contentY - 5, TEXT_PRIMARY);
+        context.drawTextWithShadow(this.customFont, selectedCategory.getName(), contentX, contentY - 5, TEXT_PRIMARY);
 
         contentY += 18;
 
@@ -239,18 +203,14 @@ public class ClickGui extends Screen {
         int clipRight  = x + guiWidth - 10;
         int clipBottom = y + guiHeight - 22;
 
-         
         context.enableScissor(clipLeft, clipTop, clipRight, clipBottom);
 
         int scrolledY = contentY - scrollOffset;
 
         if (modules.isEmpty()) {
-             
             String msg = "No modules in this category";
             int msgWidth = this.customFont.getWidth(msg);
-            context.drawText(this.customFont, msg,
-                contentX + contentWidth / 2 - msgWidth / 2, scrolledY + 50, TEXT_DIM, false);
-
+            context.drawText(this.customFont, msg, contentX + contentWidth / 2 - msgWidth / 2, scrolledY + 50, TEXT_DIM, false);
             context.disableScissor();
             return;
         }
@@ -270,63 +230,48 @@ public class ClickGui extends Screen {
 
             if (moduleY + moduleHeight < clipTop || moduleY > clipBottom) continue;
 
-            
             boolean isHovered = mouseX >= moduleX && mouseX <= moduleX + moduleWidth && 
                                mouseY >= moduleY && mouseY <= moduleY + moduleHeight;
             
-             
             int bgColor = isHovered ? MODULE_HOVER : MODULE_BG;
             context.fill(moduleX, moduleY, moduleX + moduleWidth, moduleY + moduleHeight, bgColor);
             
-             
             if (module.isEnabled()) {
                 context.fill(moduleX, moduleY + 4, moduleX + 2, moduleY + moduleHeight - 4, ACCENT);
-                 
-                context.fill(moduleX, moduleY, moduleX + moduleWidth, moduleY + moduleHeight, 
-                    isHovered ? 0x20FFFFFF : 0x10FFFFFF);
+                context.fill(moduleX, moduleY, moduleX + moduleWidth, moduleY + moduleHeight, isHovered ? 0x20FFFFFF : 0x10FFFFFF);
             } else if (isHovered) {
                 context.fill(moduleX, moduleY + 4, moduleX + 2, moduleY + moduleHeight - 4, BORDER_SUBTLE);
             }
             
-             
-            context.drawText(this.customFont, module.getName(), 
-                moduleX + 8, moduleY + 6, TEXT_PRIMARY, false);
+            context.drawText(this.customFont, module.getName(), moduleX + 8, moduleY + 6, TEXT_PRIMARY, false);
             
-             
             int settingsX = moduleX + moduleWidth - 15;
             int settingsY = moduleY + 5;
             int settingsSize = 10;
             boolean settingsHovered = mouseX >= settingsX && mouseX <= settingsX + settingsSize &&
                                      mouseY >= settingsY && mouseY <= settingsY + settingsSize;
             
-             
             int settingsBg = settingsHovered ? ACCENT : 0xFF1F1F1F;
             context.fill(settingsX, settingsY, settingsX + settingsSize, settingsY + settingsSize, settingsBg);
             
-             
             context.fill(settingsX + 4, settingsY + 2, settingsX + 6, settingsY + 4, TEXT_PRIMARY);
             context.fill(settingsX + 2, settingsY + 4, settingsX + 4, settingsY + 6, TEXT_PRIMARY);
             context.fill(settingsX + 6, settingsY + 4, settingsX + 8, settingsY + 6, TEXT_PRIMARY);
             context.fill(settingsX + 4, settingsY + 6, settingsX + 6, settingsY + 8, TEXT_PRIMARY);
             
-             
             String desc = module.getDescription();
             if (desc.length() > 19) {
                 desc = desc.substring(0, 16) + "...";
             }
-            context.drawText(this.customFont, desc, 
-                moduleX + 8, moduleY + 18, TEXT_DIM, false);
+            context.drawText(this.customFont, desc, moduleX + 8, moduleY + 18, TEXT_DIM, false);
             
-             
             int toggleX = moduleX + moduleWidth - 38;
             int toggleY = moduleY + moduleHeight - 18;
             renderToggle(context, toggleX, toggleY, module.isEnabled());
             
-             
             String status = module.isEnabled() ? "ON" : "OFF";
             int statusColor = module.isEnabled() ? ENABLED_GLOW : TEXT_DIM;
-            context.drawText(this.customFont, status, 
-                moduleX + 8, moduleY + moduleHeight - 14, statusColor, false);
+            context.drawText(this.customFont, status, moduleX + 8, moduleY + moduleHeight - 14, statusColor, false);
         }
         context.disableScissor();
     }
@@ -334,12 +279,8 @@ public class ClickGui extends Screen {
     private void renderToggle(DrawContext context, int x, int y, boolean enabled) {
         int width = 36;  
         int height = 16;  
-        
-         
         int bgColor = enabled ? ENABLED_GLOW : 0xFF1A1A1A;
         context.fill(x, y, x + width, y + height, bgColor);
-        
-         
         int circleSize = 12;  
         int circleX = enabled ? x + width - circleSize - 2 : x + 2;
         int circleY = y + 2;
@@ -349,7 +290,6 @@ public class ClickGui extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-             
             if (mouseX >= x && mouseX <= x + guiWidth && mouseY >= y && mouseY <= y + 30) {
                 dragging = true;
                 dragOffsetX = (int) (mouseX - x);
@@ -357,7 +297,6 @@ public class ClickGui extends Screen {
                 return true;
             }
             
-             
             int categoryY = y + 40;
             for (ModuleCategory category : ModuleCategory.values()) {
                 List<Module> modules = ModuleManager.getInstance().getModulesByCategory(category);
@@ -372,7 +311,6 @@ public class ClickGui extends Screen {
                 categoryY += 28;  
             }
             
-             
             int contentX = x + SIDEBAR_WIDTH + 15;
             int contentY = y + 63 - scrollOffset;
             int moduleWidth = 115;  
@@ -381,7 +319,11 @@ public class ClickGui extends Screen {
             int contentWidth = guiWidth - SIDEBAR_WIDTH - 25;
             int modulesPerRow = Math.max(1, contentWidth / (moduleWidth + moduleSpacing));
             
-            List<Module> modules = ModuleManager.getInstance().getModulesByCategory(selectedCategory);
+            List<Module> modules = ModuleManager.getInstance().getModulesByCategory(selectedCategory)
+                    .stream()
+                    .sorted(Comparator.comparing(Module::getName, String.CASE_INSENSITIVE_ORDER))
+                    .collect(Collectors.toList());
+
             for (int i = 0; i < modules.size(); i++) {
                 Module module = modules.get(i);
                 int col = i % modulesPerRow;
@@ -390,7 +332,6 @@ public class ClickGui extends Screen {
                 int moduleX = contentX + col * (moduleWidth + moduleSpacing);
                 int moduleY = contentY + row * (moduleHeight + moduleSpacing);
                 
-                 
                 int settingsX = moduleX + moduleWidth - 15;
                 int settingsY = moduleY + 5;
                 int settingsSize = 10;
@@ -401,7 +342,6 @@ public class ClickGui extends Screen {
                     return true;
                 }
                 
-                 
                 if (mouseX >= moduleX && mouseX <= moduleX + moduleWidth && 
                     mouseY >= moduleY && mouseY <= moduleY + moduleHeight) {
                     module.toggle();
@@ -426,7 +366,6 @@ public class ClickGui extends Screen {
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) {
             if (dragging) {
-                 
                 Config.getInstance().setGuiPosition(x, y);
             }
             dragging = false;

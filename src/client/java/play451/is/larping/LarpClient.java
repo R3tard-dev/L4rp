@@ -28,6 +28,7 @@ public class LarpClient implements ClientModInitializer {
         new KeyPearl();
         new AxeSwap();
         new StunSlam();
+        new AntiTrap();
 
         new AutoWalk();
 

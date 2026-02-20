@@ -91,7 +91,9 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
         if (delayTicks > 0) {
             delayTicks--;
             if (delayTicks == 0) {
-                moveTotemToOffhand();
+                if (moveTotemToOffhand() && invAutoOpened) {
+                    invCloseTicks = invCloseDelay;
+                }
             }
         }
     }
@@ -102,7 +104,6 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
             if (invOpenTicks == 0 && mc.currentScreen == null) {
                 mc.setScreen(new InventoryScreen(mc.player));
                 invAutoOpened = true;
-                invCloseTicks = invCloseDelay;
                 shouldOpenInv = false;
             }
         }
@@ -121,9 +122,9 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
         }
     }
     
-    private void moveTotemToOffhand() {
+    private boolean moveTotemToOffhand() {
         int totemSlot = findTotemSlot();
-        if (totemSlot == -1) return;
+        if (totemSlot == -1) return false;
         
         try {
             int containerSlot = totemSlot < 9 ? totemSlot + 36 : totemSlot;
@@ -138,7 +139,10 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
             }
             
             needsTotem = false;
-        } catch (Exception ignored) {}
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
     
     private int findTotemSlot() {
