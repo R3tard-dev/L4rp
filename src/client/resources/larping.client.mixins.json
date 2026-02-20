@@ -9,7 +9,8 @@
 		"StunSlamMixin",
 		"PlayerInventoryAccessor",
 		"PlayerInventoryMixin",
-		"ChatMixin"
+		"ChatMixin",
+		"CameraMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

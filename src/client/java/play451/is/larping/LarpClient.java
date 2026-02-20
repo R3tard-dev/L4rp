@@ -37,6 +37,8 @@ public class LarpClient implements ClientModInitializer {
 
         new Fullbright();
         new ESP();
+        new Freecam();
+        new Freelook();
         
          
         ClientTickEvents.END_CLIENT_TICK.register(client -> {

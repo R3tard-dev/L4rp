@@ -16,11 +16,4 @@ public class ChatMixin {
             ci.cancel();
         }
     }
-    
-    @Inject(method = "sendChatCommand", at = @At("HEAD"), cancellable = true)
-    private void onSendChatCommand(String command, CallbackInfo ci) {
-        if (CommandManager.getInstance().onChat("+" + command)) {
-            ci.cancel();
-        }
-    }
 }
