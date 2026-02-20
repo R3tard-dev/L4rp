@@ -3,7 +3,6 @@ package play451.is.larping.features.modules;
 import net.minecraft.client.MinecraftClient;
 import play451.is.larping.chat.ChatUtils;
 import play451.is.larping.config.Config;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +18,6 @@ public abstract class Module {
         this.description = description;
         this.category = category;
         this.enabled = false;
-        
         ModuleManager.getInstance().registerModule(this);
     }
     
@@ -43,9 +41,9 @@ public abstract class Module {
             onDisable();
         }
 
-        if (MinecraftClient.getInstance().player != null) {
-            String status = enabled ? "§aenabled" : "§crender";
-            ChatUtils.info(name + " " + status);
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc.player != null && mc.player.age > 20) {
+            ChatUtils.moduleToggle(this.name, enabled);
         }
         
         if (ModuleManager.getInstance().getModules().size() > 0) {
@@ -54,7 +52,6 @@ public abstract class Module {
     }
     
     public int getKeyBind() { return keyBind; }
-    
     public void setKeyBind(int keyBind) {
         this.keyBind = keyBind;
         Config.getInstance().saveModules();
