@@ -32,6 +32,7 @@ public class LarpClient implements ClientModInitializer {
         new AutoWalk();
 
         new AutoTool();
+        new Replenish();
 
         new Fullbright();
         new ESP();
