@@ -30,7 +30,6 @@ public class BindCommand extends Command {
         if (keyName.equalsIgnoreCase("none")) {
             keyCode = -1;
         } else {
-            // Very simple key finding logic
             for (int i = 0; i < 348; i++) {
                 String name = GLFW.glfwGetKeyName(i, 0);
                 if (name != null && name.equalsIgnoreCase(keyName)) {

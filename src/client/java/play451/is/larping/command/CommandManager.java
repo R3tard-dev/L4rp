@@ -13,7 +13,7 @@ public class CommandManager {
 
     public CommandManager() {
         commands.add(new HelpCommand());
-        commands.add(new EnableCommand());
+        commands.add(new ToggleCommand());
         commands.add(new BindCommand());
     }
 

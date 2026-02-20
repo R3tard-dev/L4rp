@@ -5,9 +5,9 @@ import play451.is.larping.features.command.Command;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleManager;
 
-public class EnableCommand extends Command {
-    public EnableCommand() {
-        super("enable", "Enables a specific module", "enable (module)");
+public class ToggleCommand extends Command {
+    public ToggleCommand() {
+        super("toggle", "Toggles a module on or off", "toggle (module)");
     }
 
     @Override
@@ -23,10 +23,6 @@ public class EnableCommand extends Command {
             return;
         }
 
-        if (!m.isEnabled()) {
-            m.setEnabled(true);
-        } else {
-            ChatUtils.info(m.getName() + " is already enabled.");
-        }
+        m.toggle();
     }
 }
