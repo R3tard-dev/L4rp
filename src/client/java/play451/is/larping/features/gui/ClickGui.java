@@ -156,18 +156,16 @@ public class ClickGui extends Screen {
     }
 
     private void renderAnimatedGradientTitle(DrawContext context, String text, int startX, int y) {
-        // Colors: dark blue -> white highlight
-        final int base = ACCENT;          // your dark blue
-        final int highlight = 0xFFFFFFFF; // white
+         
+        final int base = ACCENT;           
+        final int highlight = 0xFFFFFFFF;  
 
-        // Animation speed (ms per full loop)
         final float periodMs = 1800f;
 
-        // Width of the bright band (0..1 of text width). Smaller = tighter shine.
         final float bandWidth = 0.22f;
 
         long now = System.currentTimeMillis();
-        float t = (now % (long) periodMs) / periodMs; // 0..1 looping
+        float t = (now % (long) periodMs) / periodMs;  
 
         int totalW = this.customFont.getWidth(text);
         if (totalW <= 0) return;
@@ -178,16 +176,16 @@ public class ClickGui extends Screen {
             String ch = text.substring(i, i + 1);
             int chW = this.customFont.getWidth(ch);
 
-            // Character center in [0..1] across the whole text
+             
             float u = (x - startX + chW * 0.5f) / (float) totalW;
 
-            // Moving band center goes left->right (t). Wrap distance on a loop.
-            float d = wrappedDistance(u, t); // 0..0.5
+             
+            float d = wrappedDistance(u, t);  
 
-            // Convert distance into intensity: 1 at center, fades out smoothly
+             
             float intensity = 1f - smoothstep(0f, bandWidth, d);
 
-            // Mix base->highlight by intensity
+             
             int color = lerpColor(base, highlight, intensity);
 
             context.drawTextWithShadow(this.customFont, ch, x, y, color);
@@ -197,7 +195,7 @@ public class ClickGui extends Screen {
 
     private static float wrappedDistance(float a, float b) {
         float d = Math.abs(a - b);
-        return Math.min(d, 1f - d); // wrap on [0..1]
+        return Math.min(d, 1f - d);  
     }
 
     private static float smoothstep(float edge0, float edge1, float x) {
@@ -241,13 +239,13 @@ public class ClickGui extends Screen {
         int clipRight  = x + guiWidth - 10;
         int clipBottom = y + guiHeight - 22;
 
-        // uhhhh. Enabe something ig
+         
         context.enableScissor(clipLeft, clipTop, clipRight, clipBottom);
 
         int scrolledY = contentY - scrollOffset;
 
         if (modules.isEmpty()) {
-            // still clipped i think ¯\_(ツ)_/¯
+             
             String msg = "No modules in this category";
             int msgWidth = this.customFont.getWidth(msg);
             context.drawText(this.customFont, msg,

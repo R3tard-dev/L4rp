@@ -7,6 +7,7 @@ import play451.is.larping.features.modules.ModuleManager;
 import play451.is.larping.features.modules.KeybindManager;
 import play451.is.larping.features.modules.combat.*;
 import play451.is.larping.features.modules.movement.*;
+import play451.is.larping.features.modules.player.*;
 import play451.is.larping.features.modules.render.*;
 
 
@@ -29,6 +30,8 @@ public class LarpClient implements ClientModInitializer {
         new StunSlam();
 
         new AutoWalk();
+
+        new AutoTool();
 
         new Fullbright();
         new ESP();

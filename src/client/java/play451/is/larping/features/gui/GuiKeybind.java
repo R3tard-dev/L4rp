@@ -22,7 +22,6 @@ public class GuiKeybind {
          
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openGuiKey.wasPressed()) {
-                // only open if it's not already open
                 if (!(client.currentScreen instanceof ClickGui)) {
                     client.setScreen(new ClickGui());
                 }

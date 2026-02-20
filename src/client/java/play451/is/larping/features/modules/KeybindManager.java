@@ -7,10 +7,7 @@ import play451.is.larping.features.gui.ClickGui;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Checks all module keybinds every tick and toggles modules accordingly.
- * Call KeybindManager.tick() from your main client tick event.
- */
+ 
 public class KeybindManager {
     
     private static final KeybindManager INSTANCE = new KeybindManager();
@@ -26,9 +23,7 @@ public class KeybindManager {
         return INSTANCE;
     }
     
-    /**
-     * Call this every client tick (e.g. from your ClientTickEvent or onTick mixin)
-     */
+     
     public void tick() {
         if (mc.getWindow() == null) return;
         
