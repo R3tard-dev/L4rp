@@ -2,6 +2,10 @@ package play451.is.larping.features.modules.combat;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.passive.AnimalEntity;
+import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Hand;
@@ -19,16 +23,16 @@ import java.util.Random;
 
 public class TriggerBot extends Module implements ModuleSettingsRenderer {
     
-     
     private String mode = "1.9";  
     private double cps = 10.0;  
     private boolean blockhit = true;  
     private double cooldownProgress = 90.0;  
     private double hitRange = 3.0;  
     private boolean critTiming = false;  
-    private boolean requireWeapon = true;  
+    private boolean requireWeapon = true;
+    private boolean attackPlayers = true;
+    private boolean attackMobs = true;  
     
-     
     private long lastHitTime = 0;
     private long nextDelay = 0;
     private long blockEndTime = 0;
@@ -61,7 +65,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
     public void onTick() {
         if (mc.player == null || mc.world == null || mc.player.isDead()) return;
         
-         
         if (isBlocking) {
             if (System.currentTimeMillis() >= blockEndTime) {
                 stopBlocking();
@@ -70,43 +73,41 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
             }
         }
         
-         
         if (mc.player.isUsingItem()) return;
         
-         
         if (requireWeapon) {
             var stack = mc.player.getMainHandStack();
             if (!stack.isIn(ItemTags.SWORDS) && !stack.isIn(ItemTags.AXES)) return;
         }
         
-         
         if (mc.crosshairTarget instanceof EntityHitResult res
                 && res.getType() == HitResult.Type.ENTITY
-                && res.getEntity() instanceof PlayerEntity target) {
+                && res.getEntity() instanceof LivingEntity target) {
             
-             
-            if (target == mc.player || !target.isAlive() || target.isSpectator()) return;
+            if (target == mc.player || !target.isAlive()) return;
+            
+            if (target instanceof PlayerEntity) {
+                if (!attackPlayers || target.isSpectator()) return;
+            } else if (!attackMobs) {
+                return;
+            }
+
             if (mc.player.squaredDistanceTo(target) > Math.pow(hitRange, 2)) return;
             
-             
             if (mode.equals("1.9")) {
                 if (mc.player.getAttackCooldownProgress(0.5f) < (float) cooldownProgress / 100f) return;
             }
             
-             
             if (critTiming && (mc.player.isOnGround() || mc.player.fallDistance <= 0)) return;
             
-             
             long now = System.currentTimeMillis();
             if (now - lastHitTime >= nextDelay) {
-                 
                 mc.interactionManager.attackEntity(mc.player, target);
                 mc.player.swingHand(Hand.MAIN_HAND);
                 
                 lastHitTime = now;
                 hitCounter++;
                 
-                 
                 if (mode.equals("1.8") && blockhit && hitCounter >= hitsToBlock) {
                     startBlocking();
                 } else {
@@ -135,7 +136,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
     
     private void calculateNextDelay() {
         if (mode.equals("1.8")) {
-             
             double randomCps = cps + (random.nextDouble() * 6.0) - 3.0;  
             nextDelay = (long) (1000.0 / Math.max(1.0, randomCps));
         } else {
@@ -143,7 +143,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
         }
     }
     
-     
     @Override
     public Map<String, Object> saveSettings() {
         Map<String, Object> settings = new HashMap<>();
@@ -154,6 +153,8 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
         settings.put("hitRange", hitRange);
         settings.put("critTiming", critTiming);
         settings.put("requireWeapon", requireWeapon);
+        settings.put("attackPlayers", attackPlayers);
+        settings.put("attackMobs", attackMobs);
         return settings;
     }
     
@@ -166,9 +167,10 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
         if (settings.containsKey("hitRange")) hitRange = ((Number) settings.get("hitRange")).doubleValue();
         if (settings.containsKey("critTiming")) critTiming = (Boolean) settings.get("critTiming");
         if (settings.containsKey("requireWeapon")) requireWeapon = (Boolean) settings.get("requireWeapon");
+        if (settings.containsKey("attackPlayers")) attackPlayers = (Boolean) settings.get("attackPlayers");
+        if (settings.containsKey("attackMobs")) attackMobs = (Boolean) settings.get("attackMobs");
     }
     
-     
     public void setMode(String mode) {
         this.mode = mode;
         calculateNextDelay();
@@ -233,19 +235,34 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
     public boolean isRequireWeapon() {
         return requireWeapon;
     }
+
+    public void setAttackPlayers(boolean attackPlayers) {
+        this.attackPlayers = attackPlayers;
+        Config.getInstance().saveModules();
+    }
+
+    public boolean isAttackPlayers() {
+        return attackPlayers;
+    }
+
+    public void setAttackMobs(boolean attackMobs) {
+        this.attackMobs = attackMobs;
+        Config.getInstance().saveModules();
+    }
+
+    public boolean isAttackMobs() {
+        return attackMobs;
+    }
     
-     
     @Override
     public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
         int settingY = startY;
         
-         
         helper.renderLabel(context, "Mode:", null, startX, settingY);
         helper.renderModeSelector(context, mouseX, mouseY, startX + 150, settingY, 
             new String[]{"1.8", "1.9"}, mode, 40);
         settingY += 35;
         
-         
         if (mode.equals("1.8")) {
             helper.renderLabel(context, "CPS:", String.format("%.1f", cps), startX, settingY);
             helper.renderSlider(context, startX + 200, settingY, 150, cps, 1.0, 20.0);
@@ -256,14 +273,12 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
             settingY += 35;
         }
         
-         
         if (mode.equals("1.9")) {
             helper.renderLabel(context, "Cooldown %:", String.format("%.0f%%", cooldownProgress), startX, settingY);
             helper.renderSlider(context, startX + 220, settingY, 130, cooldownProgress, 0.0, 100.0);
             settingY += 35;
         }
         
-         
         helper.renderLabel(context, "Hit Range:", String.format("%.1f", hitRange), startX, settingY);
         helper.renderSlider(context, startX + 200, settingY, 150, hitRange, 1.0, 7.0);
         settingY += 35;
@@ -274,6 +289,14 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
         
         helper.renderLabel(context, "Require Weapon:", null, startX, settingY);
         helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, requireWeapon);
+        settingY += 35;
+
+        helper.renderLabel(context, "Players:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, attackPlayers);
+        settingY += 35;
+
+        helper.renderLabel(context, "Mobs:", null, startX, settingY);
+        helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, attackMobs);
         
         return settingY + 25;
     }
@@ -282,7 +305,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
     public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
         int settingY = startY;
         
-         
         int modeX = startX + 150;
         for (String modeOption : new String[]{"1.8", "1.9"}) {
             if (helper.isModeButtonHovered(mouseX, mouseY, modeX, settingY, 40)) {
@@ -293,7 +315,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
         }
         settingY += 35;
         
-         
         if (mode.equals("1.8")) {
             if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
                 double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 20.0);
@@ -302,7 +323,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
             }
             settingY += 35;
             
-             
             if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
                 setBlockhit(!blockhit);
                 return true;
@@ -310,7 +330,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
             settingY += 35;
         }
         
-         
         if (mode.equals("1.9")) {
             if (helper.isSliderHovered(mouseX, mouseY, startX + 220, settingY, 130)) {
                 double newValue = helper.calculateSliderValue(mouseX, startX + 220, 130, 0.0, 100.0);
@@ -320,7 +339,6 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
             settingY += 35;
         }
         
-         
         if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
             double newValue = helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 7.0);
             setHitRange(newValue);
@@ -328,16 +346,26 @@ public class TriggerBot extends Module implements ModuleSettingsRenderer {
         }
         settingY += 35;
         
-         
         if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
             setCritTiming(!critTiming);
             return true;
         }
         settingY += 35;
         
-         
         if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
             setRequireWeapon(!requireWeapon);
+            return true;
+        }
+        settingY += 35;
+
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setAttackPlayers(!attackPlayers);
+            return true;
+        }
+        settingY += 35;
+
+        if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
+            setAttackMobs(!attackMobs);
             return true;
         }
         
