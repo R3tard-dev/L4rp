@@ -27,8 +27,14 @@ public class SettingsHelper {
     
     public void renderLabel(DrawContext context, String label, String value, int x, int y) {
         context.drawText(textRenderer, label, x, y, TEXT_PRIMARY, false);
+
         if (value != null) {
-            context.drawText(textRenderer, value, x + 130, y, TEXT_SECONDARY, false);
+            int sliderStartX = x + 110;
+            int valueWidth = textRenderer.getWidth(value);
+            int spacing = 6;
+
+            int valueX = sliderStartX - valueWidth - spacing;
+            context.drawText(textRenderer, value, valueX, y, TEXT_SECONDARY, false);
         }
     }
     
