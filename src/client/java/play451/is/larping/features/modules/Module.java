@@ -1,5 +1,7 @@
 package play451.is.larping.features.modules;
 
+import net.minecraft.client.MinecraftClient;
+import play451.is.larping.chat.ChatUtils;
 import play451.is.larping.config.Config;
 
 import java.util.HashMap;
@@ -21,21 +23,10 @@ public abstract class Module {
         ModuleManager.getInstance().registerModule(this);
     }
     
-    public String getName() {
-        return name;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public ModuleCategory getCategory() {
-        return category;
-    }
-    
-    public boolean isEnabled() {
-        return enabled;
-    }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public ModuleCategory getCategory() { return category; }
+    public boolean isEnabled() { return enabled; }
     
     public void toggle() {
         setEnabled(!enabled);
@@ -45,10 +36,16 @@ public abstract class Module {
         if (this.enabled == enabled) return;
         
         this.enabled = enabled;
+        
         if (enabled) {
             onEnable();
         } else {
             onDisable();
+        }
+
+        if (MinecraftClient.getInstance().player != null) {
+            String status = enabled ? "§aenabled" : "§crender";
+            ChatUtils.info(name + " " + status);
         }
         
         if (ModuleManager.getInstance().getModules().size() > 0) {
@@ -56,10 +53,7 @@ public abstract class Module {
         }
     }
     
-    
-    public int getKeyBind() {
-        return keyBind;
-    }
+    public int getKeyBind() { return keyBind; }
     
     public void setKeyBind(int keyBind) {
         this.keyBind = keyBind;
@@ -70,13 +64,9 @@ public abstract class Module {
         return SettingsHelper.getKeyName(keyBind);
     }
     
-    
     public void onEnable() {}
     public void onDisable() {}
     public void onTick() {}
-    
-    
-    
     
     public Map<String, Object> saveSettings() {
         Map<String, Object> settings = new HashMap<>();
