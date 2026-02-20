@@ -17,19 +17,16 @@ import java.util.Map;
 
 public class AutoTotem extends Module implements ModuleSettingsRenderer {
     
-     
-    private int delay = 3;  
-    private boolean moveFromHotbar = true;  
-    private boolean openInv = false;  
-    private int invOpenDelay = 2;  
-    private int invCloseDelay = 8;  
+    private int delay = 3;
+    private boolean moveFromHotbar = true;
+    private boolean openInv = false;
+    private int invOpenDelay = 2;
+    private int invCloseDelay = 8;
     
-     
     private boolean needsTotem = false;
     private int delayTicks = 0;
     private boolean hadTotemInOffhand = false;
     
-     
     private boolean shouldOpenInv = false;
     private int invOpenTicks = 0;
     private int invCloseTicks = 0;
@@ -69,39 +66,37 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
         
         handleAutoInventory();
         
-         
-        boolean hasTotem = hasTotemInOffhand();
-        if (hadTotemInOffhand && !hasTotem) {
+        boolean currentlyHasTotem = hasTotemInOffhand();
+        
+        if (hadTotemInOffhand && !currentlyHasTotem) {
             needsTotem = true;
+            
             if (openInv && mc.currentScreen == null) {
                 shouldOpenInv = true;
                 invOpenTicks = invOpenDelay;
             }
+            
+            if (mc.currentScreen instanceof InventoryScreen) {
+                delayTicks = delay;
+            }
         }
-        hadTotemInOffhand = hasTotem;
         
-         
-        if (hasTotem && needsTotem) {
+        hadTotemInOffhand = currentlyHasTotem;
+        
+        if (currentlyHasTotem && needsTotem) {
             needsTotem = false;
             delayTicks = 0;
         }
         
-         
         if (delayTicks > 0) {
             delayTicks--;
             if (delayTicks == 0) {
                 moveTotemToOffhand();
             }
         }
-        
-         
-        if (mc.currentScreen instanceof InventoryScreen && needsTotem) {
-            delayTicks = delay;
-        }
     }
     
     private void handleAutoInventory() {
-         
         if (shouldOpenInv && invOpenTicks > 0) {
             invOpenTicks--;
             if (invOpenTicks == 0 && mc.currentScreen == null) {
@@ -112,7 +107,6 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
             }
         }
         
-         
         if (invAutoOpened && invCloseTicks > 0) {
             invCloseTicks--;
             if (invCloseTicks == 0 && mc.currentScreen instanceof InventoryScreen) {
@@ -121,7 +115,6 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
             }
         }
         
-         
         if (invAutoOpened && !(mc.currentScreen instanceof InventoryScreen)) {
             invAutoOpened = false;
             invCloseTicks = 0;
@@ -133,37 +126,28 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
         if (totemSlot == -1) return;
         
         try {
-             
             int containerSlot = totemSlot < 9 ? totemSlot + 36 : totemSlot;
-            
             ItemStack offhandStack = mc.player.getOffHandStack();
             
             if (offhandStack.isEmpty()) {
-                 
                 mc.interactionManager.clickSlot(0, containerSlot, 40, SlotActionType.SWAP, mc.player);
             } else {
-                 
                 mc.interactionManager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, mc.player);
                 mc.interactionManager.clickSlot(0, 45, 0, SlotActionType.PICKUP, mc.player);
                 mc.interactionManager.clickSlot(0, containerSlot, 0, SlotActionType.PICKUP, mc.player);
             }
             
             needsTotem = false;
-            
-        } catch (Exception ignored) {
-             
-        }
+        } catch (Exception ignored) {}
     }
     
     private int findTotemSlot() {
-         
         for (int i = 9; i < 36; i++) {
             if (mc.player.getInventory().getStack(i).getItem() == Items.TOTEM_OF_UNDYING) {
                 return i;
             }
         }
         
-         
         if (moveFromHotbar) {
             for (int i = 0; i < 9; i++) {
                 if (mc.player.getInventory().getStack(i).getItem() == Items.TOTEM_OF_UNDYING) {
@@ -171,7 +155,6 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
                 }
             }
         }
-        
         return -1;
     }
     
@@ -181,7 +164,6 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
         return !stack.isEmpty() && stack.getItem() == Items.TOTEM_OF_UNDYING;
     }
     
-     
     @Override
     public Map<String, Object> saveSettings() {
         Map<String, Object> settings = new HashMap<>();
@@ -195,105 +177,75 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
     
     @Override
     public void loadSettings(Map<String, Object> settings) {
-        if (settings.containsKey("delay")) {
-            delay = ((Number) settings.get("delay")).intValue();
-        }
-        if (settings.containsKey("moveFromHotbar")) {
-            moveFromHotbar = (Boolean) settings.get("moveFromHotbar");
-        }
-        if (settings.containsKey("openInv")) {
-            openInv = (Boolean) settings.get("openInv");
-        }
-        if (settings.containsKey("invOpenDelay")) {
-            invOpenDelay = ((Number) settings.get("invOpenDelay")).intValue();
-        }
-        if (settings.containsKey("invCloseDelay")) {
-            invCloseDelay = ((Number) settings.get("invCloseDelay")).intValue();
-        }
+        if (settings.containsKey("delay")) delay = ((Number) settings.get("delay")).intValue();
+        if (settings.containsKey("moveFromHotbar")) moveFromHotbar = (Boolean) settings.get("moveFromHotbar");
+        if (settings.containsKey("openInv")) openInv = (Boolean) settings.get("openInv");
+        if (settings.containsKey("invOpenDelay")) invOpenDelay = ((Number) settings.get("invOpenDelay")).intValue();
+        if (settings.containsKey("invCloseDelay")) invCloseDelay = ((Number) settings.get("invCloseDelay")).intValue();
     }
     
-     
     public void setDelay(int delay) {
         this.delay = Math.max(1, Math.min(20, delay));
         Config.getInstance().saveModules();
     }
     
-    public int getDelay() {
-        return delay;
-    }
+    public int getDelay() { return delay; }
     
     public void setMoveFromHotbar(boolean moveFromHotbar) {
         this.moveFromHotbar = moveFromHotbar;
         Config.getInstance().saveModules();
     }
     
-    public boolean isMoveFromHotbar() {
-        return moveFromHotbar;
-    }
+    public boolean isMoveFromHotbar() { return moveFromHotbar; }
     
     public void setOpenInv(boolean openInv) {
         this.openInv = openInv;
         Config.getInstance().saveModules();
     }
     
-    public boolean isOpenInv() {
-        return openInv;
-    }
+    public boolean isOpenInv() { return openInv; }
     
     public void setInvOpenDelay(int invOpenDelay) {
         this.invOpenDelay = Math.max(1, Math.min(10, invOpenDelay));
         Config.getInstance().saveModules();
     }
     
-    public int getInvOpenDelay() {
-        return invOpenDelay;
-    }
+    public int getInvOpenDelay() { return invOpenDelay; }
     
     public void setInvCloseDelay(int invCloseDelay) {
         this.invCloseDelay = Math.max(5, Math.min(20, invCloseDelay));
         Config.getInstance().saveModules();
     }
     
-    public int getInvCloseDelay() {
-        return invCloseDelay;
-    }
+    public int getInvCloseDelay() { return invCloseDelay; }
     
-     
     @Override
     public int renderSettings(DrawContext context, int mouseX, int mouseY, int startX, int startY, int width, SettingsHelper helper) {
         int settingY = startY;
         
-         
         helper.renderLabel(context, "Delay:", String.format("%d ticks", delay), startX, settingY);
         helper.renderSlider(context, startX + 200, settingY, 150, delay, 1.0, 20.0);
         settingY += 35;
         
-         
         helper.renderLabel(context, "Move From Hotbar:", null, startX, settingY);
         helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, moveFromHotbar);
         settingY += 35;
         
-         
         helper.renderLabel(context, "Auto Open Inv:", null, startX, settingY);
         helper.renderToggle(context, mouseX, mouseY, startX + 150, settingY - 5, openInv);
         settingY += 35;
         
-         
         if (openInv) {
-             
             helper.renderLabel(context, "Open Delay:", String.format("%d ticks", invOpenDelay), startX + 20, settingY);
             helper.renderSlider(context, startX + 200, settingY, 150, invOpenDelay, 1.0, 10.0);
             settingY += 35;
             
-             
             helper.renderLabel(context, "Close Delay:", String.format("%d ticks", invCloseDelay), startX + 20, settingY);
             helper.renderSlider(context, startX + 200, settingY, 150, invCloseDelay, 5.0, 20.0);
             settingY += 35;
         }
         
-         
         helper.renderInfo(context, "Automatically refills totem after pop", startX, settingY);
-        
         return settingY + 20;
     }
     
@@ -301,7 +253,6 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
     public boolean handleSettingsClick(double mouseX, double mouseY, int startX, int startY, int width, SettingsHelper helper) {
         int settingY = startY;
         
-         
         if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
             int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 20.0);
             setDelay(newValue);
@@ -309,23 +260,19 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
         }
         settingY += 35;
         
-         
         if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
             setMoveFromHotbar(!moveFromHotbar);
             return true;
         }
         settingY += 35;
         
-         
         if (helper.isToggleHovered(mouseX, mouseY, startX + 150, settingY - 5)) {
             setOpenInv(!openInv);
             return true;
         }
         settingY += 35;
         
-         
         if (openInv) {
-             
             if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
                 int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 1.0, 10.0);
                 setInvOpenDelay(newValue);
@@ -333,14 +280,12 @@ public class AutoTotem extends Module implements ModuleSettingsRenderer {
             }
             settingY += 35;
             
-             
             if (helper.isSliderHovered(mouseX, mouseY, startX + 200, settingY, 150)) {
                 int newValue = (int) helper.calculateSliderValue(mouseX, startX + 200, 150, 5.0, 20.0);
                 setInvCloseDelay(newValue);
                 return true;
             }
         }
-        
         return false;
     }
 }
