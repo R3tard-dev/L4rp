@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(Camera.class)
 public interface CameraAccessor {
     @Invoker("setPos")
-    void setPos(Vec3d pos);
+    void invokeSetPos(Vec3d pos);
 }

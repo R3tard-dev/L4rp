@@ -19,7 +19,7 @@ public abstract class CameraMixin {
         Freecam freecam = (Freecam) ModuleManager.getInstance().getModuleByName("Freecam");
         
         if (freecam != null && freecam.isEnabled()) {
-            ((CameraAccessor) this).setPos(new Vec3d(
+            ((CameraAccessor) this).invokeSetPos(new Vec3d(
                 freecam.getX(tickDelta), 
                 freecam.getY(tickDelta), 
                 freecam.getZ(tickDelta)
