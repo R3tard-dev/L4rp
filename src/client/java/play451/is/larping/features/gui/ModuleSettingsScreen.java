@@ -7,8 +7,6 @@ import org.lwjgl.glfw.GLFW;
 import play451.is.larping.features.modules.Module;
 import play451.is.larping.features.modules.ModuleSettingsRenderer;
 import play451.is.larping.features.modules.SettingsHelper;
-import net.minecraft.text.Style;
-import play451.is.larping.Fonts;
 
 public class ModuleSettingsScreen extends Screen {
     private final Screen parent;
@@ -74,8 +72,7 @@ public class ModuleSettingsScreen extends Screen {
         context.fill(x, y, x + guiWidth, y + guiHeight, BG_DARK);
         context.fill(x, y, x + guiWidth, y + 30, BG_DARKER);
 
-        context.drawTextWithShadow(this.textRenderer,
-            Text.literal(module.getName() + " Settings").setStyle(Style.EMPTY.withFont(Fonts.CUSTOM)),
+        context.drawTextWithShadow(this.textRenderer, module.getName() + " Settings",
             x + 10, y + 10, TEXT_PRIMARY);
 
         int closeX = x + guiWidth - 18;
