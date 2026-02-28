@@ -1,8 +1,12 @@
 package play451.is.larping.features.modules.render;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import play451.is.larping.config.Config;
@@ -13,7 +17,7 @@ import play451.is.larping.features.modules.SettingsHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +26,7 @@ import java.util.concurrent.Executors;
 
 public class Search extends Module implements ModuleSettingsRenderer {
 
-    private final Set<String> targetBlocks = new HashSet<>();
+    private final Set<String> targetBlocks = new LinkedHashSet<>();
 
     private String renderMode = "Box";
     private String colourMode = "Block";
@@ -41,6 +45,9 @@ public class Search extends Module implements ModuleSettingsRenderer {
     private int              tickTimer  = 0;
 
     private static final int SCAN_INTERVAL = 10;
+    private static final int ROW_H         = 14;
+    private static final int BTN_W         = 90;
+    private static final int BTN_H         = 12;
 
     private final MinecraftClient mc = MinecraftClient.getInstance();
 
@@ -79,7 +86,7 @@ public class Search extends Module implements ModuleSettingsRenderer {
         final double rangeSq = maxRange * maxRange;
         final int    r       = (int) maxRange;
         final BlockPos origin  = mc.player.getBlockPos();
-        final Set<String> targets = new HashSet<>(targetBlocks);
+        final Set<String> targets = new LinkedHashSet<>(targetBlocks);
 
         executor.execute(() -> {
             try {
@@ -94,8 +101,7 @@ public class Search extends Module implements ModuleSettingsRenderer {
                             if (dx * dx + dy * dy + dz * dz > rangeSq) continue;
 
                             BlockState state = mc.world.getBlockState(pos);
-                            String id = net.minecraft.registry.Registries.BLOCK
-                                    .getId(state.getBlock()).toString();
+                            String id = Registries.BLOCK.getId(state.getBlock()).toString();
                             if (targets.contains(id)) {
                                 found.add(pos.toImmutable());
                             }
@@ -157,6 +163,17 @@ public class Search extends Module implements ModuleSettingsRenderer {
                              int fill, int line, boolean drawBox, boolean drawTracer) {
     }
 
+    private String getLookedAtBlock() {
+        if (mc.crosshairTarget == null) return null;
+        if (mc.crosshairTarget.getType() != HitResult.Type.BLOCK) return null;
+        BlockPos pos = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
+        if (mc.world == null) return null;
+        Block block = mc.world.getBlockState(pos).getBlock();
+        String id = Registries.BLOCK.getId(block).toString();
+        if (id.equals("minecraft:air")) return null;
+        return id;
+    }
+
     public void addBlock(String registryName)    { targetBlocks.add(registryName);    save(); }
     public void removeBlock(String registryName) { targetBlocks.remove(registryName); save(); }
     public Set<String> getTargetBlocks()         { return Collections.unmodifiableSet(targetBlocks); }
@@ -215,16 +232,36 @@ public class Search extends Module implements ModuleSettingsRenderer {
         y += 24;
 
         helper.renderInfo(context, "── Target Blocks ──", col1, y); y += 14;
-        if (targetBlocks.isEmpty()) {
-            helper.renderLabel(context, "(none)", null, col1, y); y += 14;
+
+        String lookedAt = getLookedAtBlock();
+        String addLabel = lookedAt != null
+                ? "+ " + lookedAt.substring(lookedAt.indexOf(':') + 1)
+                : "(look at a block)";
+        boolean canAdd = lookedAt != null && !targetBlocks.contains(lookedAt);
+        int addColour  = canAdd ? 0xFF55FF55 : 0xFF888888;
+        context.fill(col1, y, col1 + BTN_W, y + BTN_H, 0x44000000);
+        int tw = mc.textRenderer.getWidth(addLabel);
+        context.drawText(mc.textRenderer, addLabel,
+                col1 + (BTN_W - tw) / 2, y + 2, addColour, false);
+        y += BTN_H + 4;
+
+        List<String> sorted = new ArrayList<>(targetBlocks);
+        if (sorted.isEmpty()) {
+            helper.renderLabel(context, "(none)", null, col1, y); y += ROW_H;
         } else {
-            for (String b : targetBlocks) {
+            for (String b : sorted) {
                 String display = b.contains(":") ? b.substring(b.indexOf(':') + 1) : b;
-                helper.renderLabel(context, "• " + display, null, col1, y); y += 12;
+                boolean hovered = mouseX >= col1 && mouseX <= col1 + width
+                               && mouseY >= y    && mouseY <= y + ROW_H;
+                int rowCol = hovered ? 0xFF882222 : 0xFF444444;
+                context.fill(col1, y, col1 + width, y + ROW_H - 1, rowCol);
+                context.drawText(mc.textRenderer, (hovered ? "✖ " : "• ") + display,
+                        col1 + 3, y + 2, hovered ? 0xFFFF6666 : 0xFFCCCCCC, false);
+                y += ROW_H;
             }
-            y += 4;
         }
 
+        y += 4;
         return y;
     }
 
@@ -254,6 +291,29 @@ public class Search extends Module implements ModuleSettingsRenderer {
         if (helper.isSliderHovered(mx, my, col1 + 90, y + 4, 120)) {
             maxRange = helper.calculateSliderValue(mx, col1 + 90, 120, 5, 128);
             save(); return true;
+        }
+        y += 24;
+
+        y += 14;
+
+        if (mx >= col1 && mx <= col1 + BTN_W && my >= y && my <= y + BTN_H) {
+            String lookedAt = getLookedAtBlock();
+            if (lookedAt != null && !targetBlocks.contains(lookedAt)) {
+                targetBlocks.add(lookedAt);
+                save();
+            }
+            return true;
+        }
+        y += BTN_H + 4;
+
+        List<String> sorted = new ArrayList<>(targetBlocks);
+        for (String b : sorted) {
+            if (mx >= col1 && mx <= col1 + width && my >= y && my <= y + ROW_H) {
+                targetBlocks.remove(b);
+                save();
+                return true;
+            }
+            y += ROW_H;
         }
 
         return false;
