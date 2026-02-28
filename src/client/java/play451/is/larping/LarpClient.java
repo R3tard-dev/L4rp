@@ -39,7 +39,8 @@ public class LarpClient implements ClientModInitializer {
         new ESP();
         new Freecam();
         new Freelook();
-        
+        new ChunkFinder();
+        new Search();
          
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null && client.world != null) {
