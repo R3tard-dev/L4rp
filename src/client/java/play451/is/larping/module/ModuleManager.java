@@ -1,5 +1,6 @@
 package play451.is.larping.module;
 
+import play451.is.larping.module.impl.core.ClickGuiModule;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,7 @@ public class ModuleManager {
     private static final List<Module> modules = new ArrayList<>();
 
     public static void init() {
+        modules.add(new ClickGuiModule());
     }
 
     public static List<Module> getModulesForCategory(Category category) {
@@ -17,7 +19,5 @@ public class ModuleManager {
         return result;
     }
 
-    public static List<Module> getModules() {
-        return modules;
-    }
+    public static List<Module> getModules() { return modules; }
 }
