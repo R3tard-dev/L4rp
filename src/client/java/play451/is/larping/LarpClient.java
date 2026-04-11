@@ -2,52 +2,33 @@ package play451.is.larping;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import play451.is.larping.features.gui.GuiKeybind;
-import play451.is.larping.features.modules.ModuleManager;
-import play451.is.larping.features.modules.KeybindManager;
-import play451.is.larping.features.modules.combat.*;
-import play451.is.larping.features.modules.movement.*;
-import play451.is.larping.features.modules.player.*;
-import play451.is.larping.features.modules.render.*;
-
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
+import org.lwjgl.glfw.GLFW;
+import play451.is.larping.gui.ClickGui;
+import play451.is.larping.module.ModuleManager;
 
 public class LarpClient implements ClientModInitializer {
+
+    private static KeyBinding openGui;
+
     @Override
     public void onInitializeClient() {
         Larp.LOGGER.info("L4rp client initialized");
-        
-         
-        GuiKeybind.register();
-        
-         
-        new TriggerBot();
-        new AimAssist();
-        new AutoTotem();
-        new HitCrystal();
-        new AnchorMacro();
-        new KeyPearl();
-        new AxeSwap();
-        new StunSlam();
-        new AntiTrap();
 
-        new AutoWalk();
+        ModuleManager.init();
 
-        new AutoTool();
-        new Replenish();
+        openGui = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+            "key.larp.clickgui",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_RIGHT_SHIFT,
+            "category.larp"
+        ));
 
-        new Fullbright();
-        new ESP();
-        new Freecam();
-        new Freelook();
-        new ChunkFinder();
-        new Search();
-         
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null && client.world != null) {
-                 
-                ModuleManager.getInstance().onTick();
-
-                KeybindManager.getInstance().tick();
+            while (openGui.wasPressed()) {
+                client.setScreen(new ClickGui());
             }
         });
     }
