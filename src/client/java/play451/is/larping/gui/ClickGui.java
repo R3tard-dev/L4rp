@@ -30,10 +30,17 @@ public class ClickGui extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (ClickGuiModule.INSTANCE != null && ClickGuiModule.INSTANCE.blur.getValue()) {
+            applyBlur();
+        }
         context.fill(0, 0, this.width, this.height, 0x88000000);
-        for (Frame frame : frames) frame.render(context, mouseX, mouseY, delta);
+    }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
+        for (Frame frame : frames) frame.render(context, mouseX, mouseY, delta);
     }
 
     @Override
@@ -56,7 +63,8 @@ public class ClickGui extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double hAmt, double vAmt) {
-        for (Frame frame : frames) frame.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
+        int speed = ClickGuiModule.INSTANCE != null ? (int) Math.round(ClickGuiModule.INSTANCE.scrollSpeed.getValue()) : 15;
+        for (Frame frame : frames) frame.mouseScrolled(mouseX, mouseY, hAmt, vAmt * speed);
         return super.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
     }
 
@@ -73,17 +81,25 @@ public class ClickGui extends Screen {
     }
 
     @Override
+    public void close() {
+        super.close();
+        if (ClickGuiModule.INSTANCE != null && ClickGuiModule.INSTANCE.isEnabled()) {
+            ClickGuiModule.INSTANCE.toggle();
+        }
+    }
+
+    @Override
     public boolean shouldPause() {
         return false;
     }
 
     public static Color getHeaderColor(int index) {
         if (ClickGuiModule.INSTANCE == null) return new Color(15, 112, 112, 255);
-        int packed = ClickGuiModule.INSTANCE.headerColor.getPacked();
+        int packed = ClickGuiModule.INSTANCE.color.getPacked();
         int a = (packed >> 24) & 0xFF;
         int r = (packed >> 16) & 0xFF;
         int g = (packed >> 8)  & 0xFF;
         int b =  packed        & 0xFF;
-        return new Color(r, g, b, a);
+        return new Color(r, g, b, Math.max(1, a));
     }
 }

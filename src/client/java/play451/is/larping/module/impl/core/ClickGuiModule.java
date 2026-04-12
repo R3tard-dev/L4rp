@@ -6,32 +6,43 @@ import play451.is.larping.module.Category;
 import play451.is.larping.module.Module;
 import play451.is.larping.module.setting.BooleanSetting;
 import play451.is.larping.module.setting.ColorSetting;
+import play451.is.larping.module.setting.SliderSetting;
 
 public class ClickGuiModule extends Module {
 
     public static ClickGuiModule INSTANCE;
 
-    public final ColorSetting  headerColor  = new ColorSetting("Category Header", "Color of category headers", 15, 112, 112, 255);
-    public final ColorSetting  moduleColor  = new ColorSetting("Module BG",       "Background color of modules", 10, 10, 10, 238);
-    public final ColorSetting  enabledColor = new ColorSetting("Active Module",   "Color when a module is enabled", 15, 80, 80, 238);
-    public final ColorSetting  borderColor  = new ColorSetting("Border",          "Border color of frames", 10, 64, 64, 255);
-    public final ColorSetting  overlayColor = new ColorSetting("BG Overlay",      "Screen background overlay", 0, 0, 0, 85);
-    public final BooleanSetting sounds      = new BooleanSetting("Sounds",        "Play click sounds", true);
+    public final BooleanSetting sounds      = new BooleanSetting("Sounds",      "Plays Minecraft UI sounds when interacting with the GUI.", true);
+    public final BooleanSetting blur        = new BooleanSetting("Blur",        "Whether or not to blur the background behind the GUI.", false);
+    public final SliderSetting  scrollSpeed = new SliderSetting("ScrollSpeed",  "The speed at which scrolling of the frames will be at.", 15, 1, 50, 1);
+    public final ColorSetting   color       = new ColorSetting("Color",         "The color used throughout the GUI.", 15, 112, 112, 255);
 
     public ClickGuiModule() {
-        super("ClickGUI", Category.CORE, "Opens the click GUI");
+        super("ClickGUI", Category.CORE, "Allows you to change and interact with the client's modules and settings through a GUI.");
         INSTANCE = this;
-        settings.add(headerColor);
-        settings.add(moduleColor);
-        settings.add(enabledColor);
-        settings.add(borderColor);
-        settings.add(overlayColor);
         settings.add(sounds);
+        settings.add(blur);
+        settings.add(scrollSpeed);
+        settings.add(color);
     }
 
     @Override
     public void onEnable() {
         MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) {
+            toggle();
+            return;
+        }
         client.execute(() -> client.setScreen(new ClickGui()));
+    }
+
+    @Override
+    public void onDisable() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        client.execute(() -> {
+            if (client.currentScreen instanceof ClickGui) {
+                client.setScreen(null);
+            }
+        });
     }
 }
