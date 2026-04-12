@@ -4,7 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import play451.is.larping.gui.ClickGui;
 import play451.is.larping.gui.api.Button;
-import play451.is.larping.gui.api.Frame;
+import play451.is.larping.gui.api.GuiFrame;
 import play451.is.larping.module.setting.ColorSetting;
 
 import java.awt.*;
@@ -14,11 +14,11 @@ public class ColorButton extends Button {
     private boolean open = false;
     private int dragChannel = -1;
 
-    private static final String[] LABELS      = {"R", "G", "B", "A"};
-    private static final int[]    LABEL_COLS  = {0xFFCC4444, 0xFF44CC44, 0xFF4488CC, 0xFFAAAAAA};
-    private static final int      CHANNEL_H   = 14;
+    private static final String[] LABELS     = {"R", "G", "B", "A"};
+    private static final int[]    LABEL_COLS = {0xFFCC4444, 0xFF44CC44, 0xFF4488CC, 0xFFAAAAAA};
+    private static final int      CHANNEL_H  = 14;
 
-    public ColorButton(ColorSetting setting, Frame parent, int height) {
+    public ColorButton(ColorSetting setting, GuiFrame parent, int height) {
         super(setting, parent, height, setting.getDescription());
         this.setting = setting;
     }
@@ -51,10 +51,10 @@ public class ColorButton extends Button {
         context.fill(x1, getY() + baseH - 1, x2, getY() + baseH, 0xFF050505);
 
         if (open) {
-            int    cy      = getY() + baseH;
-            int    sliderX = x1 + 10 + 3;
-            int    sliderW = x2 - sliderX - 22;
-            int[]  chs     = {setting.getR(), setting.getG(), setting.getB(), setting.getA()};
+            int   cy      = getY() + baseH;
+            int   sliderX = x1 + 10 + 3;
+            int   sliderW = x2 - sliderX - 22;
+            int[] chs     = {setting.getR(), setting.getG(), setting.getB(), setting.getA()};
 
             for (int i = 0; i < 4; i++) {
                 context.fill(x1, cy, x2, cy + CHANNEL_H - 1, 0xAA111111);
@@ -79,9 +79,9 @@ public class ColorButton extends Button {
 
     @Override
     public void mouseClicked(double mouseX, double mouseY, int button) {
-        int x1     = getX() + getPadding() + 1;
-        int x2     = getX() + getWidth() - getPadding() - 1;
-        int baseH  = super.getHeight();
+        int x1    = getX() + getPadding() + 1;
+        int x2    = getX() + getWidth() - getPadding() - 1;
+        int baseH = super.getHeight();
 
         if (isHovering(mouseX, mouseY) && button == 0) {
             open = !open;

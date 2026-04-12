@@ -4,7 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import play451.is.larping.gui.ClickGui;
 import play451.is.larping.gui.api.Button;
-import play451.is.larping.gui.api.Frame;
+import play451.is.larping.gui.api.GuiFrame;
 import play451.is.larping.module.setting.BooleanSetting;
 
 import java.awt.*;
@@ -12,7 +12,7 @@ import java.awt.*;
 public class BooleanButton extends Button {
     private final BooleanSetting setting;
 
-    public BooleanButton(BooleanSetting setting, Frame parent, int height) {
+    public BooleanButton(BooleanSetting setting, GuiFrame parent, int height) {
         super(setting, parent, height, setting.getDescription());
         this.setting = setting;
     }

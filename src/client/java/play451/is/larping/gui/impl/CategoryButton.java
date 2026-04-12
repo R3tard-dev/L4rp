@@ -4,7 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import play451.is.larping.gui.ClickGui;
 import play451.is.larping.gui.api.Button;
-import play451.is.larping.gui.api.Frame;
+import play451.is.larping.gui.api.GuiFrame;
 import play451.is.larping.module.setting.CategorySetting;
 
 import java.awt.*;
@@ -12,19 +12,19 @@ import java.awt.*;
 public class CategoryButton extends Button {
     private final CategorySetting setting;
 
-    public CategoryButton(CategorySetting setting, Frame parent, int height) {
+    public CategoryButton(CategorySetting setting, GuiFrame parent, int height) {
         super(setting, parent, height, setting.getDescription());
         this.setting = setting;
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var   tr  = MinecraftClient.getInstance().textRenderer;
+        var   tr     = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(getY());
-        int   ap  = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
-        int   h   = getHeight();
-        int   x1  = getX() + getPadding() + 1;
-        int   x2  = getX() + getWidth() - getPadding() - 1;
+        int   ap     = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        int   h      = getHeight();
+        int   x1     = getX() + getPadding() + 1;
+        int   x2     = getX() + getWidth() - getPadding() - 1;
 
         context.fill(x1, getY(), x2, getY() + h - 1, withAlpha(accent, 45));
         context.fill(x1, getY(), x1 + 1, getY() + h - 1, ap);
@@ -38,9 +38,7 @@ public class CategoryButton extends Button {
 
     @Override
     public void mouseClicked(double mouseX, double mouseY, int button) {
-        if (isHovering(mouseX, mouseY) && button == 0) {
-            setting.setOpen(!setting.isOpen());
-        }
+        if (isHovering(mouseX, mouseY) && button == 0) setting.setOpen(!setting.isOpen());
     }
 
     private int withAlpha(Color c, int a) {

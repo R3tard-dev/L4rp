@@ -4,7 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import play451.is.larping.gui.ClickGui;
 import play451.is.larping.gui.api.Button;
-import play451.is.larping.gui.api.Frame;
+import play451.is.larping.gui.api.GuiFrame;
 import play451.is.larping.module.setting.SliderSetting;
 
 import java.awt.*;
@@ -13,20 +13,20 @@ public class SliderButton extends Button {
     private final SliderSetting setting;
     private boolean sliding = false;
 
-    public SliderButton(SliderSetting setting, Frame parent, int height) {
+    public SliderButton(SliderSetting setting, GuiFrame parent, int height) {
         super(setting, parent, height, setting.getDescription());
         this.setting = setting;
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var   tr  = MinecraftClient.getInstance().textRenderer;
+        var   tr     = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(getY());
-        int   ap  = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
-        int   h   = getHeight();
-        int   x1  = getX() + getPadding() + 1;
-        int   x2  = getX() + getWidth() - getPadding() - 1;
-        int   iW  = x2 - x1;
+        int   ap     = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        int   h      = getHeight();
+        int   x1     = getX() + getPadding() + 1;
+        int   x2     = getX() + getWidth() - getPadding() - 1;
+        int   iW     = x2 - x1;
 
         context.fill(x1, getY(), x2, getY() + h - 1, 0xAA0C0C0C);
         context.fill(x1, getY(), x1 + 1, getY() + h - 1, ap);

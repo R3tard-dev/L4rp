@@ -8,6 +8,7 @@ import play451.is.larping.gui.impl.CategoryButton;
 import play451.is.larping.gui.impl.ColorButton;
 import play451.is.larping.gui.impl.SliderButton;
 import play451.is.larping.module.Module;
+import play451.is.larping.module.impl.core.ClickGuiModule;
 import play451.is.larping.module.setting.*;
 
 import java.awt.*;
@@ -16,14 +17,14 @@ import java.util.List;
 
 public class ModuleButton extends Button {
     private final Module       module;
-    private       boolean      open    = false;
-    private       boolean      dirty   = true;
+    private       boolean      open  = false;
+    private       boolean      dirty = true;
     private final List<Button> settingButtons = new ArrayList<>();
 
     public static final int MODULE_H  = 20;
     public static final int SETTING_H = 14;
 
-    public ModuleButton(Module module, Frame parent, int rowHeight) {
+    public ModuleButton(Module module, GuiFrame parent, int rowHeight) {
         super(parent, MODULE_H, module.getDescription());
         this.module = module;
     }
@@ -46,25 +47,16 @@ public class ModuleButton extends Button {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         rebuildIfDirty();
 
-        var   tr      = MinecraftClient.getInstance().textRenderer;
-        Color accent  = ClickGui.getHeaderColor(getY());
-        boolean hov   = isHovering(mouseX, mouseY);
-        boolean on    = module.isEnabled();
+        var     tr     = MinecraftClient.getInstance().textRenderer;
+        Color   accent = ClickGui.getHeaderColor(getY());
+        boolean hov    = isHovering(mouseX, mouseY);
+        boolean on     = module.isEnabled();
 
         int x1 = getX() + getPadding();
         int x2 = getX() + getWidth() - getPadding();
 
-        int bg;
-        if (on) {
-            bg = (180 << 24)
-               | (Math.max(0, accent.getRed()   - 25) << 16)
-               | (Math.max(0, accent.getGreen() - 25) << 8)
-               |  Math.max(0, accent.getBlue()  - 25);
-        } else {
-            bg = hov ? 0xCC1E1E1E : 0xCC0E0E0E;
-        }
-
-        context.fill(x1, getY(), x2, getY() + MODULE_H - 1, bg);
+        context.fill(x1, getY(), x2, getY() + MODULE_H - 1,
+                ClickGuiModule.getModuleBg(on, hov));
 
         if (on) {
             int ap = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
