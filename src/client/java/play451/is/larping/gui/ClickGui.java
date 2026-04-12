@@ -32,7 +32,7 @@ public class ClickGui extends Screen {
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
         if (ClickGuiModule.INSTANCE != null && ClickGuiModule.INSTANCE.blur.getValue()) {
-            applyBlur();
+            applyBlur(context);
         }
         context.fill(0, 0, this.width, this.height, 0x88000000);
     }
