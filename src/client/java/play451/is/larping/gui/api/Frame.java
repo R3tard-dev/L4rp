@@ -2,149 +2,139 @@ package play451.is.larping.gui.api;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import play451.is.larping.module.Category;
-import play451.is.larping.module.Module;
-import play451.is.larping.module.ModuleManager;
-import play451.is.larping.module.impl.core.ClickGuiModule;
 import play451.is.larping.gui.ClickGui;
+import play451.is.larping.gui.impl.BooleanButton;
+import play451.is.larping.gui.impl.CategoryButton;
+import play451.is.larping.gui.impl.ColorButton;
+import play451.is.larping.gui.impl.SliderButton;
+import play451.is.larping.module.Module;
+import play451.is.larping.module.impl.core.ClickGuiModule;
+import play451.is.larping.module.setting.*;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Frame {
-    private final Category category;
-    private int x, y, width, height;
-    private boolean dragging;
-    private double dragOffX, dragOffY;
-    private boolean expanded = true;
-    private int scrollOffset = 0;
-    private final List<Button> buttons = new ArrayList<>();
+public class ModuleButton extends Button {
+    private final Module       module;
+    private       boolean      open  = false;
+    private       boolean      dirty = true;
+    private final List<Button> settingButtons = new ArrayList<>();
 
-    public Frame(Category category, int x, int y, int width, int height) {
-        this.category = category;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        buildButtons();
+    public static final int MODULE_H  = 20;
+    public static final int SETTING_H = 14;
+
+    public ModuleButton(Module module, Frame parent, int rowHeight) {
+        super(parent, MODULE_H, module.getDescription());
+        this.module = module;
     }
 
-    private void buildButtons() {
-        buttons.clear();
-        for (Module mod : ModuleManager.getModulesForCategory(category)) {
-            buttons.add(new ModuleButton(mod, this, height));
+    private void rebuildIfDirty() {
+        if (!dirty) return;
+        dirty = false;
+        settingButtons.clear();
+        for (Setting<?> s : module.getSettings()) {
+            s.getVisibility().update();
+            if (!s.getVisibility().isVisible()) continue;
+            if      (s instanceof CategorySetting cs)  settingButtons.add(new CategoryButton(cs,  getParent(), SETTING_H));
+            else if (s instanceof BooleanSetting  bs)  settingButtons.add(new BooleanButton(bs,   getParent(), SETTING_H));
+            else if (s instanceof SliderSetting   ss)  settingButtons.add(new SliderButton(ss,    getParent(), SETTING_H));
+            else if (s instanceof ColorSetting    cs2) settingButtons.add(new ColorButton(cs2,    getParent(), SETTING_H));
         }
     }
 
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        Color headerColor = ClickGui.getHeaderColor(y);
-        Color headerDark  = new Color(
-            Math.max(0, headerColor.getRed()   - 20),
-            Math.max(0, headerColor.getGreen() - 20),
-            Math.max(0, headerColor.getBlue()  - 20),
-            headerColor.getAlpha()
-        );
+        rebuildIfDirty();
 
-        fill(context, x, y, x + width, y + height, headerDark.getRGB());
-        fill(context, x, y + height - 1, x + width, y + height, headerColor.getRGB());
+        var     tr     = MinecraftClient.getInstance().textRenderer;
+        Color   accent = ClickGui.getHeaderColor(getY());
+        boolean hov    = isHovering(mouseX, mouseY);
+        boolean on     = module.isEnabled();
 
-        drawCenteredText(context, category.getName(), x + width / 2, y + (height - 8) / 2, 0xFFFFFFFF);
+        int x1 = getX() + getPadding();
+        int x2 = getX() + getWidth() - getPadding();
 
-        if (!expanded) return;
+        context.fill(x1, getY(), x2, getY() + MODULE_H - 1,
+                ClickGuiModule.getModuleBg(on, hov));
 
-        int buttonY = y + height;
-        int idx = 0;
-        for (Button btn : buttons) {
-            if (idx < scrollOffset) { idx++; continue; }
-            btn.setX(x);
-            btn.setY(buttonY);
-            btn.render(context, mouseX, mouseY, delta);
-            buttonY += btn.getHeight();
-            idx++;
+        if (on) {
+            int ap = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+            context.fill(x1, getY(), x1 + 2, getY() + MODULE_H - 1, ap);
         }
 
-        fill(context, x, y, x + 1, y + height + getTotalButtonHeight(), pack(headerColor, 180));
-        fill(context, x + width - 1, y, x + width, y + height + getTotalButtonHeight(), pack(headerColor, 180));
-        fill(context, x, y + height + getTotalButtonHeight(), x + width, y + height + getTotalButtonHeight() + 1, pack(headerColor, 180));
+        boolean hasSets = !module.getSettings().isEmpty();
+        String  label   = module.getName() + (hasSets ? (open ? " \u25be" : " \u25b8") : "");
+        context.drawTextWithShadow(tr, label,
+                getX() + getTextPadding() + (on ? 3 : 1),
+                getY() + (MODULE_H - 8) / 2,
+                on ? 0xFFFFFFFF : 0xFFAAAAAA);
+
+        context.fill(x1, getY() + MODULE_H - 1, x2, getY() + MODULE_H, 0xFF050505);
+
+        if (open) {
+            int sy = getY() + MODULE_H;
+            for (Button btn : settingButtons) {
+                btn.setX(getX());
+                btn.setY(sy);
+                btn.render(context, mouseX, mouseY, delta);
+                sy += btn.getHeight();
+            }
+        }
     }
 
-    private int getTotalButtonHeight() {
-        int total = 0;
-        int idx = 0;
-        for (Button btn : buttons) {
-            if (idx < scrollOffset) { idx++; continue; }
-            total += btn.getHeight();
-            idx++;
+    @Override
+    public void mouseClicked(double mouseX, double mouseY, int button) {
+        if (isHovering(mouseX, mouseY)) {
+            if (button == 0) {
+                module.toggle();
+            } else if (button == 1 && !module.getSettings().isEmpty()) {
+                open  = !open;
+                dirty = true;
+            }
+            return;
+        }
+        if (open) {
+            for (Button btn : settingButtons) btn.mouseClicked(mouseX, mouseY, button);
+            dirty = true;
+        }
+    }
+
+    @Override
+    public void mouseReleased(double mouseX, double mouseY, int button) {
+        if (open) for (Button btn : settingButtons) btn.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public void mouseDragged(double mouseX, double mouseY, int button, double dX, double dY) {
+        if (open) for (Button btn : settingButtons) btn.mouseDragged(mouseX, mouseY, button, dX, dY);
+    }
+
+    @Override
+    public void keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (open) for (Button btn : settingButtons) btn.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public void charTyped(char chr, int modifiers) {
+        if (open) for (Button btn : settingButtons) btn.charTyped(chr, modifiers);
+    }
+
+    @Override
+    public boolean isHovering(double mouseX, double mouseY) {
+        return mouseX >= getX() + getPadding()
+            && mouseX <  getX() + getWidth() - getPadding()
+            && mouseY >= getY()
+            && mouseY <  getY() + MODULE_H;
+    }
+
+    @Override
+    public int getHeight() {
+        int total = MODULE_H;
+        if (open) {
+            rebuildIfDirty();
+            for (Button btn : settingButtons) total += btn.getHeight();
         }
         return total;
     }
-
-    public void mouseClicked(double mouseX, double mouseY, int button) {
-        if (isHoveringHeader(mouseX, mouseY)) {
-            if (button == 0) {
-                dragging  = true;
-                dragOffX  = mouseX - x;
-                dragOffY  = mouseY - y;
-            } else if (button == 1) {
-                expanded = !expanded;
-            }
-        }
-
-        if (!expanded) return;
-        for (Button btn : buttons) btn.mouseClicked(mouseX, mouseY, button);
-    }
-
-    public void mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0) dragging = false;
-        for (Button btn : buttons) btn.mouseReleased(mouseX, mouseY, button);
-    }
-
-    public void mouseDragged(double mouseX, double mouseY, int button, double dX, double dY) {
-        if (dragging && button == 0) {
-            x = (int)(mouseX - dragOffX);
-            y = (int)(mouseY - dragOffY);
-        }
-        for (Button btn : buttons) btn.mouseDragged(mouseX, mouseY, button, dX, dY);
-    }
-
-    public void mouseScrolled(double mouseX, double mouseY, double hAmt, double vAmt) {
-        if (!expanded) return;
-        int totalH = height + getTotalButtonHeight();
-        if (mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + totalH) {
-            int max = Math.max(0, buttons.size() - 10);
-            scrollOffset = Math.max(0, Math.min(max, scrollOffset - (int) Math.signum(vAmt)));
-        }
-    }
-
-    public void keyPressed(int keyCode, int scanCode, int modifiers) {
-        for (Button btn : buttons) btn.keyPressed(keyCode, scanCode, modifiers);
-    }
-
-    public void charTyped(char chr, int modifiers) {
-        for (Button btn : buttons) btn.charTyped(chr, modifiers);
-    }
-
-    private boolean isHoveringHeader(double mx, double my) {
-        return mx >= x && mx < x + width && my >= y && my < y + height;
-    }
-
-    private void fill(DrawContext ctx, int x1, int y1, int x2, int y2, int color) {
-        ctx.fill(x1, y1, x2, y2, color);
-    }
-
-    private int pack(Color c, int alpha) {
-        return (alpha << 24) | (c.getRed() << 16) | (c.getGreen() << 8) | c.getBlue();
-    }
-
-    private void drawCenteredText(DrawContext ctx, String text, int cx, int ty, int color) {
-        var tr = MinecraftClient.getInstance().textRenderer;
-        ctx.drawTextWithShadow(tr, text, cx - tr.getWidth(text) / 2, ty, color);
-    }
-
-    public int getX()      { return x; }
-    public int getY()      { return y; }
-    public int getWidth()  { return width; }
-    public int getHeight() { return height; }
-    public Category getCategory() { return category; }
 }
