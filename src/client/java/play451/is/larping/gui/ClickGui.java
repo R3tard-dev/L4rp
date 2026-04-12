@@ -14,8 +14,13 @@ import java.util.List;
 
 public class ClickGui extends Screen {
 
-    private final List<GuiFrame> frames = new ArrayList<>();
-    private final SettingsPanel  settingsPanel = new SettingsPanel(200, 40);
+    private final List<GuiFrame> frames        = new ArrayList<>();
+    private final SettingsPanel  settingsPanel  = new SettingsPanel(4, 16);
+
+    private static final int GEAR_X = 4;
+    private static final int GEAR_Y = 4;
+    private static final int GEAR_W = 50;
+    private static final int GEAR_H = 10;
 
     public ClickGui() {
         super(Text.literal("clickgui"));
@@ -26,7 +31,7 @@ public class ClickGui extends Screen {
         frames.clear();
         int x = 6;
         for (Category cat : Category.values()) {
-            frames.add(new GuiFrame(cat, x, 3, 100, 13));
+            frames.add(new GuiFrame(cat, x, 3, 100));
             x += 104;
         }
     }
@@ -36,21 +41,43 @@ public class ClickGui extends Screen {
         if (ClickGuiModule.INSTANCE != null && ClickGuiModule.INSTANCE.blur.getValue()) {
             applyBlur(context);
         }
-        int overlayCol = ClickGuiModule.INSTANCE != null
+        int ov = ClickGuiModule.INSTANCE != null
                 ? ClickGuiModule.INSTANCE.overlayColor.getPacked()
                 : 0x88000000;
-        context.fill(0, 0, this.width, this.height, overlayCol);
+        context.fill(0, 0, this.width, this.height, ov);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         for (GuiFrame frame : frames) frame.render(context, mouseX, mouseY, delta);
-        settingsPanel.render(context, mouseX, mouseY);
 
-        var tr = this.textRenderer;
-        context.drawTextWithShadow(tr, "\u2699 Right-click header to open settings",
-                4, this.height - 10, 0x55FFFFFF);
+        Color  accent  = getHeaderColor(0);
+        int    ap      = 0xFF000000 | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        boolean gearHov = mouseX >= GEAR_X && mouseX < GEAR_X + GEAR_W
+                       && mouseY >= GEAR_Y && mouseY < GEAR_Y + GEAR_H;
+        context.fill(GEAR_X, GEAR_Y, GEAR_X + GEAR_W, GEAR_Y + GEAR_H,
+                gearHov ? withAlpha(accent, 180) : withAlpha(accent, 100));
+        context.drawCenteredTextWithShadow(textRenderer, "\u2699 Settings",
+                GEAR_X + GEAR_W / 2, GEAR_Y + 1, 0xFFFFFFFF);
+
+        settingsPanel.render(context, mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0
+         && mouseX >= GEAR_X && mouseX < GEAR_X + GEAR_W
+         && mouseY >= GEAR_Y && mouseY < GEAR_Y + GEAR_H) {
+            settingsPanel.toggle();
+            return true;
+        }
+
+        if (settingsPanel.isVisible()
+         && settingsPanel.mouseClicked(mouseX, mouseY, button)) return true;
+
+        for (GuiFrame frame : frames) frame.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -58,16 +85,6 @@ public class ClickGui extends Screen {
         if (settingsPanel.mouseDragged(mouseX, mouseY, button, dX, dY)) return true;
         for (GuiFrame frame : frames) frame.mouseDragged(mouseX, mouseY, button, dX, dY);
         return super.mouseDragged(mouseX, mouseY, button, dX, dY);
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (settingsPanel.isVisible() && settingsPanel.mouseClicked(mouseX, mouseY, button)) return true;
-
-        for (GuiFrame frame : frames) {
-            if (frame.mouseClickedWithSettingsCallback(mouseX, mouseY, button, settingsPanel)) return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -79,7 +96,8 @@ public class ClickGui extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double hAmt, double vAmt) {
-        int speed = ClickGuiModule.INSTANCE != null ? (int) Math.round(ClickGuiModule.INSTANCE.scrollSpeed.getValue()) : 15;
+        int speed = ClickGuiModule.INSTANCE != null
+                ? (int) Math.round(ClickGuiModule.INSTANCE.scrollSpeed.getValue()) : 15;
         for (GuiFrame frame : frames) frame.mouseScrolled(mouseX, mouseY, hAmt, vAmt * speed);
         return super.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
     }
@@ -107,7 +125,7 @@ public class ClickGui extends Screen {
     @Override
     public boolean shouldPause() { return false; }
 
-    public static Color getHeaderColor(int index) {
+    public static Color getHeaderColor(int ignored) {
         if (ClickGuiModule.INSTANCE == null) return new Color(15, 112, 112, 255);
         int packed = ClickGuiModule.INSTANCE.color.getPacked();
         int a = (packed >> 24) & 0xFF;
@@ -115,5 +133,9 @@ public class ClickGui extends Screen {
         int g = (packed >> 8)  & 0xFF;
         int b =  packed        & 0xFF;
         return new Color(r, g, b, Math.max(1, a));
+    }
+
+    private static int withAlpha(Color c, int a) {
+        return (a << 24) | (c.getRed() << 16) | (c.getGreen() << 8) | c.getBlue();
     }
 }

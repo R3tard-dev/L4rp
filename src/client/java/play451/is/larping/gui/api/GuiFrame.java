@@ -14,87 +14,67 @@ import java.util.List;
 
 public class GuiFrame {
     private final Category     category;
-    private int                x, y, width, height;
+    private int                x, y, width;
     private boolean            dragging;
     private double             dragOffX, dragOffY;
-    private boolean            expanded     = true;
-    private int                scrollOffset = 0;
-    private final List<Button> buttons      = new ArrayList<>();
+    private final List<Button> buttons = new ArrayList<>();
 
-    public GuiFrame(Category category, int x, int y, int width, int height) {
+    private static final int LABEL_H = 10;
+
+    public GuiFrame(Category category, int x, int y, int width) {
         this.category = category;
         this.x        = x;
         this.y        = y;
         this.width    = width;
-        this.height   = height;
         buildButtons();
     }
 
     private void buildButtons() {
         buttons.clear();
         for (Module mod : ModuleManager.getModulesForCategory(category)) {
-            buttons.add(new ModuleButton(mod, this, height));
+            buttons.add(new ModuleButton(mod, this, 0));
         }
     }
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        var   tr     = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(y);
         int   aR     = accent.getRed();
         int   aG     = accent.getGreen();
         int   aB     = accent.getBlue();
-        int   aA     = accent.getAlpha();
 
-        context.fill(x, y, x + width, y + height,
-                (aA << 24) | (aR << 16) | (aG << 8) | aB);
-        drawCenteredText(context, category.getName(), x + width / 2, y + (height - 8) / 2, 0xFFFFFFFF);
+        context.drawTextWithShadow(tr, category.getName(),
+                x + width / 2 - tr.getWidth(category.getName()) / 2,
+                y + 1, (180 << 24) | (aR << 16) | (aG << 8) | aB);
 
-        if (!expanded) return;
+        context.fill(x, y + LABEL_H, x + width, y + LABEL_H + 1,
+                (60 << 24) | (aR << 16) | (aG << 8) | aB);
 
-        int bodyH = getVisibleButtonHeight();
-        context.fill(x, y + height, x + width, y + height + bodyH,
-                ClickGuiModule.getFrameBodyColor(aR, aG, aB));
-
-        int btnY = y + height;
-        int idx  = 0;
+        int btnY = y + LABEL_H + 1;
         for (Button btn : buttons) {
-            if (idx < scrollOffset) { idx++; continue; }
             btn.setX(x);
             btn.setY(btnY);
             btn.render(context, mouseX, mouseY, delta);
             btnY += btn.getHeight();
-            idx++;
         }
     }
 
-    private int getVisibleButtonHeight() {
-        int total = 0;
-        int idx   = 0;
-        for (Button btn : buttons) {
-            if (idx < scrollOffset) { idx++; continue; }
-            total += btn.getHeight();
-            idx++;
-        }
-        return total;
+    public int getTotalHeight() {
+        int h = LABEL_H + 1;
+        for (Button btn : buttons) h += btn.getHeight();
+        return h;
     }
 
-    public boolean mouseClickedWithSettingsCallback(double mouseX, double mouseY, int button, SettingsPanel panel) {
-        if (isHoveringHeader(mouseX, mouseY)) {
+    public void mouseClicked(double mouseX, double mouseY, int button) {
+        if (isHoveringLabel(mouseX, mouseY)) {
             if (button == 0) {
                 dragging = true;
                 dragOffX = mouseX - x;
                 dragOffY = mouseY - y;
-            } else if (button == 1) {
-                panel.open((int) mouseX + 4, (int) mouseY);
             }
-            return true;
+            return;
         }
-        if (!expanded) return false;
         for (Button btn : buttons) btn.mouseClicked(mouseX, mouseY, button);
-        return false;
-    }
-
-    public void mouseClicked(double mouseX, double mouseY, int button) {
-        mouseClickedWithSettingsCallback(mouseX, mouseY, button, null);
     }
 
     public void mouseReleased(double mouseX, double mouseY, int button) {
@@ -111,12 +91,7 @@ public class GuiFrame {
     }
 
     public void mouseScrolled(double mouseX, double mouseY, double hAmt, double vAmt) {
-        if (!expanded) return;
-        int totalH = height + getVisibleButtonHeight();
-        if (mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + totalH) {
-            int max = Math.max(0, buttons.size() - 10);
-            scrollOffset = Math.max(0, Math.min(max, scrollOffset - (int) Math.signum(vAmt)));
-        }
+        for (Button btn : buttons) btn.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
     }
 
     public void keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -127,18 +102,13 @@ public class GuiFrame {
         for (Button btn : buttons) btn.charTyped(chr, modifiers);
     }
 
-    private boolean isHoveringHeader(double mx, double my) {
-        return mx >= x && mx < x + width && my >= y && my < y + height;
-    }
-
-    private void drawCenteredText(DrawContext ctx, String text, int cx, int ty, int color) {
-        var tr = MinecraftClient.getInstance().textRenderer;
-        ctx.drawTextWithShadow(tr, text, cx - tr.getWidth(text) / 2, ty, color);
+    private boolean isHoveringLabel(double mx, double my) {
+        return mx >= x && mx < x + width && my >= y && my < y + LABEL_H;
     }
 
     public int      getX()        { return x; }
     public int      getY()        { return y; }
     public int      getWidth()    { return width; }
-    public int      getHeight()   { return height; }
+    public int      getHeight()   { return LABEL_H; }
     public Category getCategory() { return category; }
 }
