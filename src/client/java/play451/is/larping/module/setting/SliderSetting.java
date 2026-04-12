@@ -1,8 +1,5 @@
 package play451.is.larping.module.setting;
 
-import lombok.Getter;
-
-@Getter
 public class SliderSetting extends Setting<Double> {
     private final double min;
     private final double max;
@@ -10,22 +7,18 @@ public class SliderSetting extends Setting<Double> {
 
     public SliderSetting(String name, String description, double defaultValue, double min, double max, double increment) {
         super(name, name, description, defaultValue);
-        this.min = min;
-        this.max = max;
+        this.min       = min;
+        this.max       = max;
         this.increment = increment;
     }
 
-    public SliderSetting(String name, String description, double defaultValue, double min, double max, double increment, Visibility visibility) {
-        super(name, name, description, visibility);
-        this.value = defaultValue;
-        this.min = min;
-        this.max = max;
-        this.increment = increment;
-    }
+    public double getMin()       { return min; }
+    public double getMax()       { return max; }
+    public double getIncrement() { return increment; }
 
     @Override
-    public void setValue(Double value) {
-        double snapped = Math.round(value / increment) * increment;
+    public void setValue(Double v) {
+        double snapped = Math.round(v / increment) * increment;
         this.value = Math.max(min, Math.min(max, snapped));
     }
 

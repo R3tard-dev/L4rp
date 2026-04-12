@@ -19,20 +19,21 @@ public class CategoryButton extends Button {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var tr = MinecraftClient.getInstance().textRenderer;
+        var   tr  = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(getY());
+        int   ap  = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        int   h   = getHeight();
+        int   x1  = getX() + getPadding() + 1;
+        int   x2  = getX() + getWidth() - getPadding() - 1;
 
-        int innerX1 = getX() + getPadding() + 1;
-        int innerX2 = getX() + getWidth() - getPadding() - 1;
-        int alpha = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        context.fill(x1, getY(), x2, getY() + h - 1, withAlpha(accent, 45));
+        context.fill(x1, getY(), x1 + 1, getY() + h - 1, ap);
 
-        context.fill(innerX1, getY(), innerX2, getY() + getHeight() - 1,
-                (60 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue());
+        String arrow = setting.isOpen() ? "\u25bc " : "\u25b6 ";
+        context.drawTextWithShadow(tr, arrow + setting.getTag(),
+                getX() + getTextPadding() + 2, getY() + (h - 8) / 2, ap);
 
-        context.drawTextWithShadow(tr, (setting.isOpen() ? "\u25bc " : "\u25b6 ") + setting.getTag(),
-                getX() + getTextPadding() + 2, getY() + (getHeight() - 8) / 2, alpha);
-
-        context.fill(innerX1, getY() + getHeight() - 1, innerX2, getY() + getHeight(), 0xFF060606);
+        context.fill(x1, getY() + h - 1, x2, getY() + h, 0xFF050505);
     }
 
     @Override
@@ -40,5 +41,9 @@ public class CategoryButton extends Button {
         if (isHovering(mouseX, mouseY) && button == 0) {
             setting.setOpen(!setting.isOpen());
         }
+    }
+
+    private int withAlpha(Color c, int a) {
+        return (a << 24) | (c.getRed() << 16) | (c.getGreen() << 8) | c.getBlue();
     }
 }

@@ -6,12 +6,5 @@ public class BooleanSetting extends Setting<Boolean> {
         super(name, name, description, defaultValue);
     }
 
-    public BooleanSetting(String name, String description, boolean defaultValue, Visibility visibility) {
-        super(name, name, description, visibility);
-        this.value = defaultValue;
-    }
-
-    public void toggle() {
-        value = !value;
-    }
+    public void toggle() { value = !value; }
 }

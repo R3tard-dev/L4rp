@@ -14,9 +14,9 @@ public class ColorButton extends Button {
     private boolean open = false;
     private int dragChannel = -1;
 
-    private static final String[] LABELS = {"R", "G", "B", "A"};
-    private static final int[] LABEL_COLORS = {0xFFCC4444, 0xFF44CC44, 0xFF4488CC, 0xFFAAAAAA};
-    private static final int CHANNEL_H = 9;
+    private static final String[] LABELS      = {"R", "G", "B", "A"};
+    private static final int[]    LABEL_COLS  = {0xFFCC4444, 0xFF44CC44, 0xFF4488CC, 0xFFAAAAAA};
+    private static final int      CHANNEL_H   = 14;
 
     public ColorButton(ColorSetting setting, Frame parent, int height) {
         super(setting, parent, height, setting.getDescription());
@@ -25,45 +25,53 @@ public class ColorButton extends Button {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var tr = MinecraftClient.getInstance().textRenderer;
+        var   tr     = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(getY());
-        int baseH = super.getHeight();
+        int   ap     = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        int   baseH  = super.getHeight();
+        int   x1     = getX() + getPadding() + 1;
+        int   x2     = getX() + getWidth() - getPadding() - 1;
 
-        int innerX1 = getX() + getPadding() + 1;
-        int innerX2 = getX() + getWidth() - getPadding() - 1;
-
-        context.fill(innerX1, getY(), innerX2, getY() + baseH - 1, 0xAA0D0D0D);
-        context.fill(innerX1, getY(), innerX1 + 1, getY() + baseH - 1,
-                (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue());
+        context.fill(x1, getY(), x2, getY() + baseH - 1, 0xAA0C0C0C);
+        context.fill(x1, getY(), x1 + 1, getY() + baseH - 1, ap);
 
         context.drawTextWithShadow(tr, setting.getTag(),
                 getX() + getTextPadding() + 2, getY() + (baseH - 8) / 2, 0xFFCCCCCC);
 
-        int previewColor = setting.getPacked();
-        context.fill(innerX2 - 10, getY() + 2, innerX2 - 2, getY() + baseH - 3, previewColor | 0xFF000000);
-        context.fill(innerX2 - 10, getY() + 2, innerX2 - 2, getY() + baseH - 3,
+        int px = x2 - 12;
+        int py = getY() + 2;
+        context.fill(px, py, x2 - 2, getY() + baseH - 3, 0xFF333333);
+        context.fill(px, py, x2 - 2, getY() + baseH - 3,
                 (setting.getA() << 24) | (setting.getR() << 16) | (setting.getG() << 8) | setting.getB());
 
-        context.fill(innerX1, getY() + baseH - 1, innerX2, getY() + baseH, 0xFF060606);
+        String arrow = open ? "\u25be" : "\u25b8";
+        context.drawTextWithShadow(tr, arrow, px - 4 - tr.getWidth(arrow),
+                getY() + (baseH - 8) / 2, 0xFF888888);
+
+        context.fill(x1, getY() + baseH - 1, x2, getY() + baseH, 0xFF050505);
 
         if (open) {
-            int cy = getY() + baseH;
-            int[] channels = {setting.getR(), setting.getG(), setting.getB(), setting.getA()};
-            int sliderX1 = innerX1 + 10;
-            int sliderW  = innerX2 - sliderX1 - 22;
+            int    cy      = getY() + baseH;
+            int    sliderX = x1 + 10 + 3;
+            int    sliderW = x2 - sliderX - 22;
+            int[]  chs     = {setting.getR(), setting.getG(), setting.getB(), setting.getA()};
 
             for (int i = 0; i < 4; i++) {
-                context.fill(innerX1, cy, innerX2, cy + CHANNEL_H - 1, 0xAA111111);
-                context.drawTextWithShadow(tr, LABELS[i], innerX1 + 2, cy + 1, LABEL_COLORS[i]);
+                context.fill(x1, cy, x2, cy + CHANNEL_H - 1, 0xAA111111);
+                context.fill(x1, cy, x1 + 1, cy + CHANNEL_H - 1, LABEL_COLS[i]);
+                context.drawTextWithShadow(tr, LABELS[i], x1 + 3, cy + (CHANNEL_H - 8) / 2, LABEL_COLS[i]);
 
-                context.fill(sliderX1, cy + 2, sliderX1 + sliderW, cy + CHANNEL_H - 2, 0xFF1A1A1A);
-                int fillW = (int)((channels[i] / 255.0) * sliderW);
-                context.fill(sliderX1, cy + 2, sliderX1 + fillW, cy + CHANNEL_H - 2, LABEL_COLORS[i]);
+                context.fill(sliderX, cy + 3, sliderX + sliderW, cy + CHANNEL_H - 3, 0xFF1A1A1A);
+                int fillW  = (int)((chs[i] / 255.0) * sliderW);
+                context.fill(sliderX, cy + 3, sliderX + fillW, cy + CHANNEL_H - 3, LABEL_COLS[i]);
+                int thumbX = sliderX + fillW;
+                context.fill(thumbX - 1, cy + 2, thumbX + 1, cy + CHANNEL_H - 2, 0xFFFFFFFF);
 
-                String valStr = String.valueOf(channels[i]);
-                context.drawTextWithShadow(tr, valStr, innerX2 - 2 - tr.getWidth(valStr), cy + 1, 0xFFCCCCCC);
+                String vs = String.valueOf(chs[i]);
+                context.drawTextWithShadow(tr, vs, x2 - 2 - tr.getWidth(vs),
+                        cy + (CHANNEL_H - 8) / 2, 0xFFCCCCCC);
 
-                context.fill(innerX1, cy + CHANNEL_H - 1, innerX2, cy + CHANNEL_H, 0xFF060606);
+                context.fill(x1, cy + CHANNEL_H - 1, x2, cy + CHANNEL_H, 0xFF050505);
                 cy += CHANNEL_H;
             }
         }
@@ -71,28 +79,27 @@ public class ColorButton extends Button {
 
     @Override
     public void mouseClicked(double mouseX, double mouseY, int button) {
-        int baseH   = super.getHeight();
-        int innerX1 = getX() + getPadding() + 1;
-        int innerX2 = getX() + getWidth() - getPadding() - 1;
+        int x1     = getX() + getPadding() + 1;
+        int x2     = getX() + getWidth() - getPadding() - 1;
+        int baseH  = super.getHeight();
 
         if (isHovering(mouseX, mouseY) && button == 0) {
             open = !open;
             return;
         }
+        if (!open) return;
 
-        if (open) {
-            int sliderX1 = innerX1 + 10;
-            int sliderW  = innerX2 - sliderX1 - 22;
-            int cy = getY() + baseH;
-            for (int i = 0; i < 4; i++) {
-                if (mouseX >= sliderX1 && mouseX < sliderX1 + sliderW
-                 && mouseY >= cy + 2 && mouseY < cy + CHANNEL_H - 2) {
-                    dragChannel = i;
-                    applyChannel(mouseX, sliderX1, sliderW);
-                    return;
-                }
-                cy += CHANNEL_H;
+        int sliderX = x1 + 10 + 3;
+        int sliderW = x2 - sliderX - 22;
+        int cy      = getY() + baseH;
+        for (int i = 0; i < 4; i++) {
+            if (mouseX >= sliderX && mouseX < sliderX + sliderW
+             && mouseY >= cy + 3  && mouseY < cy + CHANNEL_H - 3) {
+                dragChannel = i;
+                applyChannel(mouseX, sliderX, sliderW);
+                return;
             }
+            cy += CHANNEL_H;
         }
     }
 
@@ -104,15 +111,15 @@ public class ColorButton extends Button {
     @Override
     public void mouseDragged(double mouseX, double mouseY, int button, double dX, double dY) {
         if (dragChannel < 0 || !open) return;
-        int innerX1 = getX() + getPadding() + 1;
-        int sliderX1 = innerX1 + 10;
-        int innerX2  = getX() + getWidth() - getPadding() - 1;
-        int sliderW  = innerX2 - sliderX1 - 22;
-        applyChannel(mouseX, sliderX1, sliderW);
+        int x1      = getX() + getPadding() + 1;
+        int x2      = getX() + getWidth() - getPadding() - 1;
+        int sliderX = x1 + 10 + 3;
+        int sliderW = x2 - sliderX - 22;
+        applyChannel(mouseX, sliderX, sliderW);
     }
 
-    private void applyChannel(double mouseX, int sliderX, int sliderW) {
-        int val = (int) Math.max(0, Math.min(255, ((mouseX - sliderX) / sliderW) * 255));
+    private void applyChannel(double mx, int sx, int sw) {
+        int val = (int) Math.max(0, Math.min(255, ((mx - sx) / sw) * 255));
         switch (dragChannel) {
             case 0 -> setting.setR(val);
             case 1 -> setting.setG(val);

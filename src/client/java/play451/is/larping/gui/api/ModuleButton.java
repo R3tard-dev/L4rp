@@ -15,63 +15,72 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ModuleButton extends Button {
-    private final Module module;
-    private boolean open = false;
+    private final Module       module;
+    private       boolean      open    = false;
+    private       boolean      dirty   = true;
     private final List<Button> settingButtons = new ArrayList<>();
 
-    private static final int MODULE_H = 16;
+    public static final int MODULE_H  = 20;
+    public static final int SETTING_H = 14;
 
     public ModuleButton(Module module, Frame parent, int rowHeight) {
         super(parent, MODULE_H, module.getDescription());
         this.module = module;
-        buildSettingButtons();
     }
 
-    private void buildSettingButtons() {
+    private void rebuildIfDirty() {
+        if (!dirty) return;
+        dirty = false;
         settingButtons.clear();
         for (Setting<?> s : module.getSettings()) {
+            s.getVisibility().update();
             if (!s.getVisibility().isVisible()) continue;
-            if (s instanceof CategorySetting cs)   settingButtons.add(new CategoryButton(cs, getParent(), MODULE_H - 2));
-            else if (s instanceof BooleanSetting bs) settingButtons.add(new BooleanButton(bs, getParent(), MODULE_H - 2));
-            else if (s instanceof SliderSetting ss)  settingButtons.add(new SliderButton(ss, getParent(), MODULE_H - 2));
-            else if (s instanceof ColorSetting cs2)  settingButtons.add(new ColorButton(cs2, getParent(), MODULE_H - 2));
+            if      (s instanceof CategorySetting cs)  settingButtons.add(new CategoryButton(cs,  getParent(), SETTING_H));
+            else if (s instanceof BooleanSetting  bs)  settingButtons.add(new BooleanButton(bs,   getParent(), SETTING_H));
+            else if (s instanceof SliderSetting   ss)  settingButtons.add(new SliderButton(ss,    getParent(), SETTING_H));
+            else if (s instanceof ColorSetting    cs2) settingButtons.add(new ColorButton(cs2,    getParent(), SETTING_H));
         }
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var tr     = MinecraftClient.getInstance().textRenderer;
-        Color accent = ClickGui.getHeaderColor(getY());
-        boolean hovered = isHovering(mouseX, mouseY);
-        boolean enabled = module.isEnabled();
+        rebuildIfDirty();
 
-        int innerX1 = getX() + getPadding();
-        int innerX2 = getX() + getWidth() - getPadding();
+        var   tr      = MinecraftClient.getInstance().textRenderer;
+        Color accent  = ClickGui.getHeaderColor(getY());
+        boolean hov   = isHovering(mouseX, mouseY);
+        boolean on    = module.isEnabled();
+
+        int x1 = getX() + getPadding();
+        int x2 = getX() + getWidth() - getPadding();
 
         int bg;
-        if (enabled) {
-            bg = (180 << 24) | ((Math.max(0, accent.getRed() - 25)) << 16)
-               | ((Math.max(0, accent.getGreen() - 25)) << 8) | Math.max(0, accent.getBlue() - 25);
+        if (on) {
+            bg = (180 << 24)
+               | (Math.max(0, accent.getRed()   - 25) << 16)
+               | (Math.max(0, accent.getGreen() - 25) << 8)
+               |  Math.max(0, accent.getBlue()  - 25);
         } else {
-            bg = hovered ? 0xCC1C1C1C : 0xCC0E0E0E;
+            bg = hov ? 0xCC1E1E1E : 0xCC0E0E0E;
         }
 
-        context.fill(innerX1, getY(), innerX2, getY() + MODULE_H - 1, bg);
+        context.fill(x1, getY(), x2, getY() + MODULE_H - 1, bg);
 
-        if (enabled) {
-            context.fill(innerX1, getY(), innerX1 + 2, getY() + MODULE_H - 1,
-                    (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue());
+        if (on) {
+            int ap = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+            context.fill(x1, getY(), x1 + 2, getY() + MODULE_H - 1, ap);
         }
 
         boolean hasSets = !module.getSettings().isEmpty();
-        String label = module.getName() + (hasSets ? (open ? " \u25be" : " \u25b8") : "");
-        context.drawTextWithShadow(tr, label, getX() + getTextPadding() + (enabled ? 3 : 0),
-                getY() + (MODULE_H - 8) / 2, enabled ? 0xFFFFFFFF : 0xFFAAAAAA);
+        String  label   = module.getName() + (hasSets ? (open ? " \u25be" : " \u25b8") : "");
+        context.drawTextWithShadow(tr, label,
+                getX() + getTextPadding() + (on ? 3 : 1),
+                getY() + (MODULE_H - 8) / 2,
+                on ? 0xFFFFFFFF : 0xFFAAAAAA);
 
-        context.fill(innerX1, getY() + MODULE_H - 1, innerX2, getY() + MODULE_H, 0xFF060606);
+        context.fill(x1, getY() + MODULE_H - 1, x2, getY() + MODULE_H, 0xFF050505);
 
         if (open) {
-            buildSettingButtons();
             int sy = getY() + MODULE_H;
             for (Button btn : settingButtons) {
                 btn.setX(getX());
@@ -85,10 +94,18 @@ public class ModuleButton extends Button {
     @Override
     public void mouseClicked(double mouseX, double mouseY, int button) {
         if (isHovering(mouseX, mouseY)) {
-            if (button == 0) module.toggle();
-            else if (button == 1 && !module.getSettings().isEmpty()) open = !open;
+            if (button == 0) {
+                module.toggle();
+            } else if (button == 1 && !module.getSettings().isEmpty()) {
+                open  = !open;
+                dirty = true;
+            }
+            return;
         }
-        if (open) for (Button btn : settingButtons) btn.mouseClicked(mouseX, mouseY, button);
+        if (open) {
+            for (Button btn : settingButtons) btn.mouseClicked(mouseX, mouseY, button);
+            dirty = true;
+        }
     }
 
     @Override
@@ -113,16 +130,19 @@ public class ModuleButton extends Button {
 
     @Override
     public boolean isHovering(double mouseX, double mouseY) {
-        return mouseX >= getX() + getPadding() && mouseX < getX() + getWidth() - getPadding()
-            && mouseY >= getY() && mouseY < getY() + MODULE_H;
+        return mouseX >= getX() + getPadding()
+            && mouseX <  getX() + getWidth() - getPadding()
+            && mouseY >= getY()
+            && mouseY <  getY() + MODULE_H;
     }
 
     @Override
     public int getHeight() {
-        if (!open) return MODULE_H;
         int total = MODULE_H;
-        buildSettingButtons();
-        for (Button btn : settingButtons) total += btn.getHeight();
+        if (open) {
+            rebuildIfDirty();
+            for (Button btn : settingButtons) total += btn.getHeight();
+        }
         return total;
     }
 }

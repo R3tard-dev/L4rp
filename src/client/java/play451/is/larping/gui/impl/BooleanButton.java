@@ -19,37 +19,35 @@ public class BooleanButton extends Button {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var tr = MinecraftClient.getInstance().textRenderer;
+        var   tr     = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(getY());
+        int   ap     = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        int   h      = getHeight();
+        int   x1     = getX() + getPadding() + 1;
+        int   x2     = getX() + getWidth() - getPadding() - 1;
 
-        context.fill(getX() + getPadding() + 1, getY(), getX() + getWidth() - getPadding() - 1, getY() + getHeight() - 1,
-                setting.getValue() ? withAlpha(accent, 80) : 0xAA0D0D0D);
-
-        context.fill(getX() + getPadding() + 1, getY(), getX() + getPadding() + 2, getY() + getHeight() - 1,
-                withAlpha(accent, 200));
+        context.fill(x1, getY(), x2, getY() + h - 1,
+                setting.getValue() ? withAlpha(accent, 70) : 0xAA0C0C0C);
+        context.fill(x1, getY(), x1 + 1, getY() + h - 1, ap);
 
         context.drawTextWithShadow(tr, setting.getTag(),
-                getX() + getTextPadding() + 2, getY() + (getHeight() - 8) / 2,
-                setting.getValue() ? 0xFFFFFFFF : 0xFFAAAAAA);
+                getX() + getTextPadding() + 2, getY() + (h - 8) / 2,
+                setting.getValue() ? 0xFFFFFFFF : 0xFF999999);
 
-        String valText = setting.getValue() ? "ON" : "OFF";
-        int valColor   = setting.getValue() ? accent.getRGB() | 0xFF000000 : 0xFF666666;
-        context.drawTextWithShadow(tr, valText,
-                getX() + getWidth() - getPadding() - 2 - tr.getWidth(valText),
-                getY() + (getHeight() - 8) / 2, valColor);
+        String val    = setting.getValue() ? "ON" : "OFF";
+        int    valCol = setting.getValue() ? ap : 0xFF555555;
+        context.drawTextWithShadow(tr, val,
+                x2 - 2 - tr.getWidth(val), getY() + (h - 8) / 2, valCol);
 
-        context.fill(getX() + getPadding() + 1, getY() + getHeight() - 1,
-                getX() + getWidth() - getPadding() - 1, getY() + getHeight(), 0xFF060606);
+        context.fill(x1, getY() + h - 1, x2, getY() + h, 0xFF050505);
     }
 
     @Override
     public void mouseClicked(double mouseX, double mouseY, int button) {
-        if (isHovering(mouseX, mouseY) && button == 0) {
-            setting.toggle();
-        }
+        if (isHovering(mouseX, mouseY) && button == 0) setting.toggle();
     }
 
-    private int withAlpha(Color c, int alpha) {
-        return (alpha << 24) | (c.getRed() << 16) | (c.getGreen() << 8) | c.getBlue();
+    private int withAlpha(Color c, int a) {
+        return (a << 24) | (c.getRed() << 16) | (c.getGreen() << 8) | c.getBlue();
     }
 }

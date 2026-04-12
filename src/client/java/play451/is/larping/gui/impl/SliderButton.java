@@ -20,30 +20,29 @@ public class SliderButton extends Button {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        var tr = MinecraftClient.getInstance().textRenderer;
+        var   tr  = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(getY());
+        int   ap  = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
+        int   h   = getHeight();
+        int   x1  = getX() + getPadding() + 1;
+        int   x2  = getX() + getWidth() - getPadding() - 1;
+        int   iW  = x2 - x1;
 
-        int innerX1 = getX() + getPadding() + 1;
-        int innerX2 = getX() + getWidth() - getPadding() - 1;
-        int innerW  = innerX2 - innerX1;
+        context.fill(x1, getY(), x2, getY() + h - 1, 0xAA0C0C0C);
+        context.fill(x1, getY(), x1 + 1, getY() + h - 1, ap);
 
-        context.fill(innerX1, getY(), innerX2, getY() + getHeight() - 1, 0xAA0D0D0D);
-        context.fill(innerX1, getY(), innerX1 + 1, getY() + getHeight() - 1,
-                (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue());
-
-        double ratio  = (setting.getValue() - setting.getMin()) / (setting.getMax() - setting.getMin());
-        int    fillW  = (int)(ratio * innerW);
-        context.fill(innerX1, getY() + getHeight() - 2, innerX1 + fillW, getY() + getHeight() - 1,
-                (200 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue());
+        double ratio = (setting.getValue() - setting.getMin()) / (setting.getMax() - setting.getMin());
+        context.fill(x1, getY() + h - 3, x1 + (int)(ratio * iW), getY() + h - 1,
+                withAlpha(accent, 200));
 
         context.drawTextWithShadow(tr, setting.getTag(),
-                getX() + getTextPadding() + 2, getY() + (getHeight() - 8) / 2, 0xFFCCCCCC);
+                getX() + getTextPadding() + 2, getY() + (h - 8) / 2, 0xFFCCCCCC);
 
         String val = setting.getDisplayValue();
         context.drawTextWithShadow(tr, val,
-                innerX2 - 2 - tr.getWidth(val), getY() + (getHeight() - 8) / 2, 0xFFFFFFFF);
+                x2 - 2 - tr.getWidth(val), getY() + (h - 8) / 2, 0xFFFFFFFF);
 
-        context.fill(innerX1, getY() + getHeight() - 1, innerX2, getY() + getHeight(), 0xFF060606);
+        context.fill(x1, getY() + h - 1, x2, getY() + h, 0xFF050505);
     }
 
     @Override
@@ -64,10 +63,14 @@ public class SliderButton extends Button {
         if (sliding && button == 0) applySlide(mouseX);
     }
 
-    private void applySlide(double mouseX) {
-        int innerX1 = getX() + getPadding() + 1;
-        int innerW  = getWidth() - getPadding() * 2 - 2;
-        double ratio = Math.max(0, Math.min(1, (mouseX - innerX1) / innerW));
+    private void applySlide(double mx) {
+        int    x1    = getX() + getPadding() + 1;
+        int    iW    = getWidth() - getPadding() * 2 - 2;
+        double ratio = Math.max(0, Math.min(1, (mx - x1) / iW));
         setting.setValue(setting.getMin() + ratio * (setting.getMax() - setting.getMin()));
+    }
+
+    private int withAlpha(Color c, int a) {
+        return (a << 24) | (c.getRed() << 16) | (c.getGreen() << 8) | c.getBlue();
     }
 }
