@@ -55,18 +55,22 @@ public class ModuleButton extends Button {
         int x1 = getX() + getPadding();
         int x2 = getX() + getWidth() - getPadding();
 
-        context.fill(x1, getY(), x2, getY() + MODULE_H - 1,
-                ClickGuiModule.getModuleBg(on, hov));
-
+        int bg;
         if (on) {
-            int ap = (255 << 24) | (accent.getRed() << 16) | (accent.getGreen() << 8) | accent.getBlue();
-            context.fill(x1, getY(), x1 + 2, getY() + MODULE_H - 1, ap);
+            int r = accent.getRed();
+            int g = accent.getGreen();
+            int b = accent.getBlue();
+            bg = (180 << 24) | (r << 16) | (g << 8) | b;
+        } else {
+            bg = hov ? 0xCC1E1E1E : 0xCC0E0E0E;
         }
+
+        context.fill(x1, getY(), x2, getY() + MODULE_H - 1, bg);
 
         boolean hasSets = !module.getSettings().isEmpty();
         String  label   = module.getName() + (hasSets ? (open ? " \u25be" : " \u25b8") : "");
         context.drawTextWithShadow(tr, label,
-                getX() + getTextPadding() + (on ? 3 : 1),
+                getX() + getTextPadding() + 1,
                 getY() + (MODULE_H - 8) / 2,
                 on ? 0xFFFFFFFF : 0xFFAAAAAA);
 

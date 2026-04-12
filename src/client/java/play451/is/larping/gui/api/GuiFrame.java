@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiFrame {
-    private final Category       category;
-    private int                  x, y, width, height;
-    private boolean              dragging;
-    private double               dragOffX, dragOffY;
-    private boolean              expanded     = true;
-    private int                  scrollOffset = 0;
-    private final List<Button>   buttons      = new ArrayList<>();
+    private final Category     category;
+    private int                x, y, width, height;
+    private boolean            dragging;
+    private double             dragOffX, dragOffY;
+    private boolean            expanded     = true;
+    private int                scrollOffset = 0;
+    private final List<Button> buttons      = new ArrayList<>();
 
     public GuiFrame(Category category, int x, int y, int width, int height) {
         this.category = category;
@@ -38,33 +38,21 @@ public class GuiFrame {
     }
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        Color accent    = ClickGui.getHeaderColor(y);
-        int   aR        = accent.getRed();
-        int   aG        = accent.getGreen();
-        int   aB        = accent.getBlue();
-        int   borderSz  = ClickGuiModule.getBorderSize();
-        int   totalH    = expanded ? height + getVisibleButtonHeight() : height;
+        Color accent = ClickGui.getHeaderColor(y);
+        int   aR     = accent.getRed();
+        int   aG     = accent.getGreen();
+        int   aB     = accent.getBlue();
+        int   aA     = accent.getAlpha();
 
-        if (borderSz > 0) {
-            int borderCol = ClickGuiModule.getBorderColor(aR, aG, aB);
-            context.fill(x - borderSz, y - borderSz,
-                         x + width + borderSz, y + totalH + borderSz, borderCol);
-        }
-
-        int headerDark = (accent.getAlpha() << 24)
-                       | (Math.max(0, aR - 20) << 16)
-                       | (Math.max(0, aG - 20) << 8)
-                       |  Math.max(0, aB - 20);
-        int headerLine = 0xFF000000 | (aR << 16) | (aG << 8) | aB;
-
-        context.fill(x, y, x + width, y + height, headerDark);
-        context.fill(x, y + height - 1, x + width, y + height, headerLine);
+        context.fill(x, y, x + width, y + height,
+                (aA << 24) | (aR << 16) | (aG << 8) | aB);
         drawCenteredText(context, category.getName(), x + width / 2, y + (height - 8) / 2, 0xFFFFFFFF);
 
         if (!expanded) return;
 
-        int bodyColor = ClickGuiModule.getFrameBodyColor(aR, aG, aB);
-        context.fill(x, y + height, x + width, y + height + getVisibleButtonHeight(), bodyColor);
+        int bodyH = getVisibleButtonHeight();
+        context.fill(x, y + height, x + width, y + height + bodyH,
+                ClickGuiModule.getFrameBodyColor(aR, aG, aB));
 
         int btnY = y + height;
         int idx  = 0;
@@ -89,19 +77,24 @@ public class GuiFrame {
         return total;
     }
 
-    public void mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClickedWithSettingsCallback(double mouseX, double mouseY, int button, SettingsPanel panel) {
         if (isHoveringHeader(mouseX, mouseY)) {
             if (button == 0) {
                 dragging = true;
                 dragOffX = mouseX - x;
                 dragOffY = mouseY - y;
             } else if (button == 1) {
-                expanded = !expanded;
+                panel.open((int) mouseX + 4, (int) mouseY);
             }
-            return;
+            return true;
         }
-        if (!expanded) return;
+        if (!expanded) return false;
         for (Button btn : buttons) btn.mouseClicked(mouseX, mouseY, button);
+        return false;
+    }
+
+    public void mouseClicked(double mouseX, double mouseY, int button) {
+        mouseClickedWithSettingsCallback(mouseX, mouseY, button, null);
     }
 
     public void mouseReleased(double mouseX, double mouseY, int button) {
