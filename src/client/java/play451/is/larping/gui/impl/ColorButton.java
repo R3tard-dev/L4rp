@@ -83,18 +83,22 @@ public class ColorButton extends Button {
         int x2    = getX() + getWidth() - getPadding() - 1;
         int baseH = super.getHeight();
 
-        if (isHovering(mouseX, mouseY) && button == 0) {
-            open = !open;
+        if (mouseX >= x1 && mouseX < x2 && mouseY >= getY() && mouseY < getY() + baseH) {
+            if (button == 0) {
+                open = !open;
+                dragChannel = -1;
+            }
             return;
         }
+
         if (!open) return;
 
         int sliderX = x1 + 10 + 3;
         int sliderW = x2 - sliderX - 22;
         int cy      = getY() + baseH;
         for (int i = 0; i < 4; i++) {
-            if (mouseX >= sliderX && mouseX < sliderX + sliderW
-             && mouseY >= cy + 3  && mouseY < cy + CHANNEL_H - 3) {
+            if (mouseX >= x1 && mouseX < x2
+             && mouseY >= cy && mouseY < cy + CHANNEL_H) {
                 dragChannel = i;
                 applyChannel(mouseX, sliderX, sliderW);
                 return;
