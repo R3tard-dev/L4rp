@@ -51,22 +51,16 @@ public class GuiFrame {
         return h;
     }
 
-    public Module mouseClicked(double mouseX, double mouseY, int button) {
+    public void mouseClicked(double mouseX, double mouseY, int button) {
         if (mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + LABEL_H) {
             if (button == 0) {
                 dragging = true;
                 dragOffX = mouseX - x;
                 dragOffY = mouseY - y;
             }
-            return null;
+            return;
         }
-        for (Button btn : buttons) {
-            if (button == 1 && btn instanceof ModuleButton mb && mb.isHovering(mouseX, mouseY)) {
-                return mb.getModule();
-            }
-            btn.mouseClicked(mouseX, mouseY, button);
-        }
-        return null;
+        for (Button btn : buttons) btn.mouseClicked(mouseX, mouseY, button);
     }
 
     public void mouseReleased(double mouseX, double mouseY, int button) {

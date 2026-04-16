@@ -4,7 +4,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import play451.is.larping.gui.api.GuiFrame;
-import play451.is.larping.gui.api.SettingsPanel;
 import play451.is.larping.module.Category;
 import play451.is.larping.module.impl.core.ClickGuiModule;
 
@@ -15,7 +14,6 @@ import java.util.List;
 public class ClickGui extends Screen {
 
     private final List<GuiFrame> frames = new ArrayList<>();
-    private final SettingsPanel settingsPanel = new SettingsPanel(4, 16);
 
     public ClickGui() {
         super(Text.literal("clickgui"));
@@ -46,39 +44,28 @@ public class ClickGui extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         for (GuiFrame frame : frames) frame.render(context, mouseX, mouseY, delta);
-        settingsPanel.render(context, mouseX, mouseY);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (settingsPanel.mouseClicked(mouseX, mouseY, button)) return true;
-        for (GuiFrame frame : frames) {
-            var mod = frame.mouseClicked(mouseX, mouseY, button);
-            if (mod != null && button == 1) {
-                settingsPanel.open(mod);
-                return true;
-            }
-        }
+        for (GuiFrame frame : frames) frame.mouseClicked(mouseX, mouseY, button);
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        settingsPanel.mouseReleased(mouseX, mouseY, button);
         for (GuiFrame frame : frames) frame.mouseReleased(mouseX, mouseY, button);
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dX, double dY) {
-        if (settingsPanel.mouseDragged(mouseX, mouseY, button, dX, dY)) return true;
         for (GuiFrame frame : frames) frame.mouseDragged(mouseX, mouseY, button, dX, dY);
         return super.mouseDragged(mouseX, mouseY, button, dX, dY);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double hAmt, double vAmt) {
-        if (settingsPanel.mouseScrolled(mouseX, mouseY, vAmt)) return true;
         for (GuiFrame frame : frames) frame.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
         return super.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
     }

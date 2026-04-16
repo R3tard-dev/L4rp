@@ -66,11 +66,7 @@ public class ModuleButton extends Button {
         }
 
         context.fill(x1, getY(), x2, getY() + MODULE_H, bg);
-
-        boolean hasSets = !module.getSettings().isEmpty();
-        String label = module.getName() + (hasSets ? (open ? " -" : " +") : "");
-
-        context.drawTextWithShadow(tr, label, getX() + 4, getY() + 3, on ? 0xFFFFFFFF : 0xFFAAAAAA);
+        context.drawTextWithShadow(tr, module.getName(), getX() + 4, getY() + 3, on ? 0xFFFFFFFF : 0xFFAAAAAA);
 
         if (open) {
             int sy = getY() + MODULE_H;
@@ -87,6 +83,10 @@ public class ModuleButton extends Button {
     public void mouseClicked(double mouseX, double mouseY, int button) {
         if (isHovering(mouseX, mouseY)) {
             if (button == 0) module.toggle();
+            else if (button == 1) {
+                open = !open;
+                dirty = true;
+            }
             return;
         }
         if (open) {
