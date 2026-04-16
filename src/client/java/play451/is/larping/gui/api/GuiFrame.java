@@ -61,8 +61,10 @@ public class GuiFrame {
             return null;
         }
         for (Button btn : buttons) {
-            Module result = btn.mouseClicked(mouseX, mouseY, button);
-            if (result != null) return result;
+            if (button == 1 && btn instanceof ModuleButton mb && mb.isHovering(mouseX, mouseY)) {
+                return mb.getModule();
+            }
+            btn.mouseClicked(mouseX, mouseY, button);
         }
         return null;
     }

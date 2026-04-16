@@ -87,10 +87,6 @@ public class ModuleButton extends Button {
     public void mouseClicked(double mouseX, double mouseY, int button) {
         if (isHovering(mouseX, mouseY)) {
             if (button == 0) module.toggle();
-            else if (button == 1 && !module.getSettings().isEmpty()) {
-                open = !open;
-                dirty = true;
-            }
             return;
         }
         if (open) {
@@ -136,4 +132,6 @@ public class ModuleButton extends Button {
         }
         return total;
     }
+
+    public Module getModule() { return module; }
 }
