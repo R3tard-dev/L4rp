@@ -49,6 +49,55 @@ public class ClickGui extends Screen {
         settingsPanel.render(context, mouseX, mouseY);
     }
 
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (settingsPanel.mouseClicked(mouseX, mouseY, button)) return true;
+        for (GuiFrame frame : frames) {
+            var mod = frame.mouseClicked(mouseX, mouseY, button);
+            if (mod != null && button == 1) {
+                settingsPanel.open(mod);
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        settingsPanel.mouseReleased(mouseX, mouseY, button);
+        for (GuiFrame frame : frames) frame.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dX, double dY) {
+        if (settingsPanel.mouseDragged(mouseX, mouseY, button, dX, dY)) return true;
+        for (GuiFrame frame : frames) frame.mouseDragged(mouseX, mouseY, button, dX, dY);
+        return super.mouseDragged(mouseX, mouseY, button, dX, dY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double hAmt, double vAmt) {
+        if (settingsPanel.mouseScrolled(mouseX, mouseY, vAmt)) return true;
+        for (GuiFrame frame : frames) frame.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
+        return super.mouseScrolled(mouseX, mouseY, hAmt, vAmt);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        for (GuiFrame frame : frames) frame.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char chr, int modifiers) {
+        for (GuiFrame frame : frames) frame.charTyped(chr, modifiers);
+        return super.charTyped(chr, modifiers);
+    }
+
+    @Override
+    public boolean shouldPause() { return false; }
+
     public static Color getHeaderColor(int ignored) {
         if (ClickGuiModule.INSTANCE == null) return new Color(15, 112, 112, 255);
         int packed = ClickGuiModule.INSTANCE.color.getPacked();

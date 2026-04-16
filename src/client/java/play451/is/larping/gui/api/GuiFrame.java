@@ -35,9 +35,7 @@ public class GuiFrame {
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         var tr = MinecraftClient.getInstance().textRenderer;
-
         context.drawCenteredTextWithShadow(tr, category.getName(), x + width / 2, y + 2, 0xFFFFFFFF);
-
         int btnY = y + LABEL_H;
         for (Button btn : buttons) {
             btn.setX(x);
@@ -53,16 +51,20 @@ public class GuiFrame {
         return h;
     }
 
-    public void mouseClicked(double mouseX, double mouseY, int button) {
+    public Module mouseClicked(double mouseX, double mouseY, int button) {
         if (mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + LABEL_H) {
             if (button == 0) {
                 dragging = true;
                 dragOffX = mouseX - x;
                 dragOffY = mouseY - y;
             }
-            return;
+            return null;
         }
-        for (Button btn : buttons) btn.mouseClicked(mouseX, mouseY, button);
+        for (Button btn : buttons) {
+            Module result = btn.mouseClicked(mouseX, mouseY, button);
+            if (result != null) return result;
+        }
+        return null;
     }
 
     public void mouseReleased(double mouseX, double mouseY, int button) {

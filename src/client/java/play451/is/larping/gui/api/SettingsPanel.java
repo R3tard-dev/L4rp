@@ -3,7 +3,7 @@ package play451.is.larping.gui.api;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import play451.is.larping.gui.ClickGui;
-import play451.is.larping.module.impl.core.ClickGuiModule;
+import play451.is.larping.module.Module;
 import play451.is.larping.module.setting.*;
 
 import java.awt.*;
@@ -11,10 +11,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class SettingsPanel {
-    private int     x, y;
+    private int x, y;
     private boolean visible  = false;
     private boolean dragging = false;
     private double  dragOffX, dragOffY;
+
+    private Module currentModule = null;
 
     private static final int WIDTH    = 160;
     private static final int HEADER_H = 13;
@@ -36,11 +38,22 @@ public class SettingsPanel {
         this.y = y;
     }
 
+    public void open(Module module) {
+        if (currentModule == module && visible) {
+            visible = false;
+            currentModule = null;
+        } else {
+            currentModule = module;
+            openPickers.clear();
+            visible = true;
+        }
+    }
+
     public void toggle() { visible = !visible; }
     public boolean isVisible() { return visible; }
 
     public void render(DrawContext ctx, int mouseX, int mouseY) {
-        if (!visible || ClickGuiModule.INSTANCE == null) return;
+        if (!visible || currentModule == null) return;
 
         var   tr     = MinecraftClient.getInstance().textRenderer;
         Color accent = ClickGui.getHeaderColor(0);
@@ -52,13 +65,13 @@ public class SettingsPanel {
         int totalH = computeTotalHeight();
 
         ctx.fill(x, y, x + WIDTH, y + HEADER_H, ap);
-        ctx.drawCenteredTextWithShadow(tr, "GUI Settings",
+        ctx.drawCenteredTextWithShadow(tr, currentModule.getName(),
                 x + WIDTH / 2, y + (HEADER_H - 8) / 2, 0xFFFFFFFF);
 
         ctx.fill(x, y + HEADER_H, x + WIDTH, y + totalH, 0xF0101010);
 
         int rowY = y + HEADER_H + 2;
-        for (Setting<?> s : ClickGuiModule.INSTANCE.getSettings()) {
+        for (Setting<?> s : currentModule.getSettings()) {
             if (!s.getVisibility().isVisible()) continue;
 
             if (s instanceof BooleanSetting bs) {
@@ -146,9 +159,9 @@ public class SettingsPanel {
     }
 
     private int computeTotalHeight() {
-        if (ClickGuiModule.INSTANCE == null) return HEADER_H;
+        if (currentModule == null) return HEADER_H;
         int h = HEADER_H + 2;
-        for (Setting<?> s : ClickGuiModule.INSTANCE.getSettings()) {
+        for (Setting<?> s : currentModule.getSettings()) {
             if (!s.getVisibility().isVisible()) continue;
             h += ROW_H;
             if (s instanceof ColorSetting cs && openPickers.contains(cs)) h += CH_H * 4;
@@ -157,7 +170,7 @@ public class SettingsPanel {
     }
 
     public boolean mouseClicked(double mx, double my, int button) {
-        if (!visible || ClickGuiModule.INSTANCE == null) return false;
+        if (!visible || currentModule == null) return false;
 
         int totalH = computeTotalHeight();
         boolean inside = mx >= x && mx < x + WIDTH && my >= y && my < y + totalH;
@@ -175,7 +188,7 @@ public class SettingsPanel {
         }
 
         int rowY = y + HEADER_H + 2;
-        for (Setting<?> s : ClickGuiModule.INSTANCE.getSettings()) {
+        for (Setting<?> s : currentModule.getSettings()) {
             if (!s.getVisibility().isVisible()) continue;
 
             if (s instanceof BooleanSetting bs) {
@@ -255,6 +268,12 @@ public class SettingsPanel {
             activeDragChannel = -1;
         }
         return false;
+    }
+
+    public boolean mouseScrolled(double mx, double my, double vAmt) {
+        if (!visible || currentModule == null) return false;
+        int totalH = computeTotalHeight();
+        return mx >= x && mx < x + WIDTH && my >= y && my < y + totalH;
     }
 
     private void applySlider(SliderSetting ss, double mx) {
